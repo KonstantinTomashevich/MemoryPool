@@ -74,14 +74,14 @@ static void AllocateDeallocate_BoostObjectPool (benchmark::State &state)
         });
 }
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component_32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component32b);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component_192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component192b);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component_1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component1032b);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component_32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component32b);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component_192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component192b);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component_1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component1032b);

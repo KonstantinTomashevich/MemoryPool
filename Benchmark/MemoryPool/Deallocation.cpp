@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <functional>
 
 #include <benchmark/benchmark.h>
 
@@ -68,14 +67,14 @@ static void DeallocateOnly_BoostObjectPool (benchmark::State &state)
         });
 }
 
-BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component_32b);
+BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component32b);
 
-BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component_192b);
+BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component192b);
 
-BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component_1032b);
+BENCHMARK_TEMPLATE(DeallocateOnly_NewDelete, Component1032b);
 
-BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component_32b);
+BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component32b);
 
-BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component_192b);
+BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component192b);
 
-BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component_1032b);
+BENCHMARK_TEMPLATE(DeallocateOnly_BoostObjectPool, Component1032b);

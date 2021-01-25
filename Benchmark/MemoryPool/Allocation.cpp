@@ -38,14 +38,14 @@ static void AllocateOnly_BoostObjectPool (benchmark::State &state)
     // Pool with destruct everything.
 }
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_32b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component32b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_192b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component192b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_1032b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component1032b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component_32b);
+BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component32b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component_192b);
+BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component192b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component_1032b);
+BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component1032b);
