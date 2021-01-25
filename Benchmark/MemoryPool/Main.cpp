@@ -1,3 +1,3 @@
-#include <celero/Celero.h>
+#include <benchmark/benchmark.h>
 
-CELERO_MAIN
+BENCHMARK_MAIN();
