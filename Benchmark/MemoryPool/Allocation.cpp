@@ -8,7 +8,7 @@
 #include "Types.hpp"
 
 template <typename ObjectType>
-static void AllocateOnly_New (benchmark::State &state)
+static void AllocateOnly_NewDelete (benchmark::State &state)
 {
     std::vector <ObjectType *> allocated;
     for (auto _ : state)
@@ -38,11 +38,11 @@ static void AllocateOnly_BoostObjectPool (benchmark::State &state)
     // Pool with destruct everything.
 }
 
-BENCHMARK_TEMPLATE(AllocateOnly_New, Component_32b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_32b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_New, Component_192b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_192b);
 
-BENCHMARK_TEMPLATE(AllocateOnly_New, Component_1032b);
+BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component_1032b);
 
 BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component_32b);
 
