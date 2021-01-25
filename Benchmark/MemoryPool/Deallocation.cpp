@@ -13,26 +13,27 @@ template <typename ObjectType, typename AllocatorLambda, typename DeallocatorLam
 void DeallocationRoutine (benchmark::State &state, const AllocatorLambda &allocator,
                           const DeallocatorLambda &deallocator)
 {
-    std::vector <ObjectType *> allocated;
+    std::array <ObjectType *, POOL_MAX_SIZE> allocated {};
+    std::size_t allocatedCount = 0u;
+
     for (auto _ : state)
     {
         state.PauseTiming ();
-        if (allocated.size() < POOL_MAX_SIZE / 10u)
+        if (allocatedCount < POOL_MAX_SIZE / 10u)
         {
-            for (std::size_t index = 0; index < POOL_MAX_SIZE; ++index)
+            while (allocatedCount < POOL_MAX_SIZE)
             {
-                allocated.emplace_back (allocator ());
+                allocated[allocatedCount++] = allocator ();
             }
         }
 
         state.ResumeTiming ();
-        deallocator (allocated.back ());
-        allocated.pop_back ();
+        deallocator (allocated[--allocatedCount]);
     }
 
-    for (ObjectType *left : allocated)
+    while (allocatedCount > 0u)
     {
-        deallocator (left);
+        deallocator (allocated[--allocatedCount]);
     }
 }
 
