@@ -28,12 +28,26 @@ struct ManagedObjectTypeDescriptor
     }
 };
 
+// std::tuple <Descriptors::RuntimeType...> construction doesn't
+// work on clang-cl, therefore these helper methods were added.
+template <typename Head>
+auto UnpackDescriptors (Head &head)
+{
+    return std::tuple <typename Head::RuntimeType> (head.ConstructRuntime ());
+}
+
+template <typename Head, typename... Tail>
+auto UnpackDescriptors (Head &head, Tail &... tail)
+{
+    return std::tuple_cat (UnpackDescriptors (head), UnpackDescriptors (tail...));
+}
+
 // In practical ECS, bunch of components are usually deleted at one shot (with entity
 // deletion, for example). This template allows to benchmark suck situations.
 template <typename... Descriptors>
 void AllocateDeallocateRoutine (benchmark::State &state, Descriptors... descriptors)
 {
-    std::tuple <Descriptors::RuntimeType...> allocated = {descriptors.ConstructRuntime ()...};
+    auto allocated = UnpackDescriptors (descriptors...);
     std::size_t allocatedCount = 0u;
 
     for (auto _ : state)
