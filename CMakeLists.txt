@@ -10,4 +10,5 @@ find_package (Boost COMPONENTS headers REQUIRED)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Bin")
 
 add_subdirectory (ThirdParty)
+add_subdirectory (Source)
 add_subdirectory (Benchmark)
