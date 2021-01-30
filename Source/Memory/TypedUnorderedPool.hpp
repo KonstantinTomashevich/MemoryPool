@@ -47,6 +47,9 @@ class TypedUnorderedPool
     static_assert (sizeof (Entry) >= sizeof (uintptr_t),
                    "Entry type size must be at equal or greater than pointer size!");
 
+    static_assert (Constructor);
+    static_assert (Destructor);
+
 public:
     explicit TypedUnorderedPool (SizeType pageCapacity) noexcept;
 

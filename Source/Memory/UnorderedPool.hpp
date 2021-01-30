@@ -29,7 +29,11 @@ private:
 class UnorderedPool
 {
 public:
-    UnorderedPool (SizeType pageCapacity, SizeType chunkSize) noexcept;
+    using Constructor =  std::function <void (void *)>;
+    using Destructor =  std::function <void (void *)>;
+
+    UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
+                   Constructor constructor, Destructor destructor) noexcept;
 
     ~UnorderedPool () noexcept;
 
@@ -43,7 +47,7 @@ public:
 
 private:
     UntypedPoolFields fields_;
-    std::function <void (void *)> constructor_;
-    std::function <void (void *)> destructor_;
+    Constructor constructor_;
+    Destructor destructor_;
 };
 }

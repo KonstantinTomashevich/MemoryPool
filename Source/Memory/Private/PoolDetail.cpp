@@ -41,7 +41,7 @@ void AssertPoolState (BasePoolFields &fields, SizeType chunkSize) noexcept
 {
     assert (chunkSize >= sizeof (uintptr_t));
     assert (fields.pageCapacity_ > 0u);
-    assert (!fields.topFreeChunk_ || !fields.topPage_);
+    assert (!fields.topFreeChunk_ || fields.topPage_);
 
     assert (std::count_if (
         PageDetail::PageIterator::Begin (fields),
@@ -287,7 +287,7 @@ bool IsFrom (PagePointer page, SizeType pageCapacity, SizeType chunkSize, ChunkP
     assert (page);
     void *firstChunk = static_cast <void *> (static_cast <uintptr_t *> (page) + 1u);
     void *lastChunk = static_cast <void *> (static_cast <uint8_t *> (firstChunk) + (pageCapacity - 1u) * chunkSize);
-    return chunk >= firstChunk && chunk < lastChunk;
+    return chunk >= firstChunk && chunk <= lastChunk;
 }
 
 ChunkPointer NextChunk (ChunkPointer current, SizeType chunkSize) noexcept

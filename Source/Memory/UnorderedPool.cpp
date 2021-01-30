@@ -37,9 +37,14 @@ void UnorderedTrivialPool::Clean () noexcept
     PoolDetail::TrivialClean (fields_, fields_.chunkSize_);
 }
 
-UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize) noexcept
-    : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize}
+UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
+                              Constructor constructor, Destructor destructor) noexcept
+    : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize},
+      constructor_ (std::move (constructor)),
+      destructor_ (std::move (destructor))
 {
+    assert (constructor_);
+    assert (destructor_);
 }
 
 UnorderedPool::~UnorderedPool () noexcept
@@ -51,6 +56,8 @@ void *UnorderedPool::Acquire () noexcept
 {
     void *entry = PoolDetail::Acquire (fields_, fields_.chunkSize_);
     assert (entry);
+    assert (constructor_);
+
     constructor_ (entry);
     return entry;
 }
@@ -59,6 +66,8 @@ void UnorderedPool::Free (void *entry) noexcept
 {
     assert (entry);
     PoolDetail::AssertFromPool (fields_, entry, fields_.chunkSize_);
+
+    assert (destructor_);
     destructor_ (entry);
     PoolDetail::Free (fields_, entry, fields_.chunkSize_);
 }
