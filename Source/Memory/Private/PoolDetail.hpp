@@ -8,31 +8,37 @@ namespace Memory
 {
 namespace PageDetail
 {
-ChunkPointer GetFirstChunk (PagePointer page);
+ChunkPointer GetFirstChunk (PagePointer page) noexcept;
 
-ChunkPointer GetLastChunk (SizeType pageCapacity, SizeType chunkSize, ChunkPointer firstChunk);
+ChunkPointer GetLastChunk (SizeType pageCapacity, SizeType chunkSize, ChunkPointer firstChunk) noexcept;
 
-bool IsFrom (PagePointer page, SizeType pageCapacity, SizeType chunkSize, ChunkPointer chunk);
+bool IsFrom (PagePointer page, SizeType pageCapacity, SizeType chunkSize, ChunkPointer chunk) noexcept;
 
-ChunkPointer NextChunk (ChunkPointer current, SizeType chunkSize);
+ChunkPointer NextChunk (ChunkPointer current, SizeType chunkSize) noexcept;
 
 class PageIterator
 {
 public:
-    PageIterator &operator ++ ();
+    using iterator_category = std::input_iterator_tag;
+    using value_type = PagePointer;
+    using difference_type = std::size_t;
+    using pointer = PagePointer *;
+    using reference = value_type &;
 
-    PagePointer operator * () const;
+    PageIterator &operator ++ () noexcept;
 
-    bool operator == (const PageIterator &other) const;
+    PagePointer operator * () const noexcept;
 
-    bool operator != (const PageIterator &other) const;
+    bool operator == (const PageIterator &other) const noexcept;
 
-    static PageIterator Begin (BasePoolFields &poolFields);
+    bool operator != (const PageIterator &other) const noexcept;
 
-    static PageIterator End (BasePoolFields &poolFields);
+    static PageIterator Begin (BasePoolFields &poolFields) noexcept;
+
+    static PageIterator End (BasePoolFields &poolFields) noexcept;
 
 private:
-    explicit PageIterator (PagePointer page);
+    explicit PageIterator (PagePointer page) noexcept;
 
     PagePointer currentPage_;
 };
@@ -40,31 +46,32 @@ private:
 
 namespace PoolDetail
 {
-void AssertPoolState (BasePoolFields &fields, SizeType chunkSize);
+void AssertPoolState (BasePoolFields &fields, SizeType chunkSize) noexcept;
 
-void AssertFromPool (BasePoolFields &fields, void *entry, SizeType chunkSize);
+void AssertFromPool (BasePoolFields &fields, void *entry, SizeType chunkSize) noexcept;
 
-void *Acquire (BasePoolFields &fields, SizeType chunkSize);
+void *Acquire (BasePoolFields &fields, SizeType chunkSize) noexcept;
 
-void Free (BasePoolFields &fields, void *entry, SizeType chunkSize);
+void Free (BasePoolFields &fields, void *entry, SizeType chunkSize) noexcept;
 
-void TrivialClean (BasePoolFields &fields, SizeType chunkSize);
+void TrivialClean (BasePoolFields &fields, SizeType chunkSize) noexcept;
 
 // Template to help compiler optimize this method for typed pools.
 template <typename Destructor>
-void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destructor &destructor);
+void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destructor &destructor) noexcept;
 
-void Shrink (BasePoolFields &fields, SizeType chunkSize);
+void Shrink (BasePoolFields &fields, SizeType chunkSize) noexcept;
 
-ChunkPointer NextFreeChunk (ChunkPointer current);
+ChunkPointer NextFreeChunk (ChunkPointer current) noexcept;
 
-PagePointer FindChunkPage (BasePoolFields &fields, SizeType chunkSize, ChunkPointer chunk, SizeType &pageIndexOutput);
+PagePointer FindChunkPage (BasePoolFields &fields, SizeType chunkSize,
+                           ChunkPointer chunk, SizeType &pageIndexOutput) noexcept;
 }
 
 namespace PoolDetail
 {
 template <typename Destructor>
-void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destructor &destructor)
+void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destructor &destructor) noexcept
 {
     AssertPoolState (fields, chunkSize);
     // TODO: Static thread local is used to avoid vector allocation during this call. Rethink about this solution.

@@ -10,17 +10,17 @@ namespace Memory
 class UnorderedTrivialPool
 {
 public:
-    UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize);
+    UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize) noexcept;
 
-    ~UnorderedTrivialPool ();
+    ~UnorderedTrivialPool () noexcept;
 
-    void *Acquire ();
+    void *Acquire () noexcept;
 
-    void Free (void *entry);
+    void Free (void *entry) noexcept;
 
-    void Shrink ();
+    void Shrink () noexcept;
 
-    void Clean ();
+    void Clean () noexcept;
 
 private:
     UntypedPoolFields fields_;
@@ -29,17 +29,17 @@ private:
 class UnorderedPool
 {
 public:
-    UnorderedPool (SizeType pageCapacity, SizeType chunkSize);
+    UnorderedPool (SizeType pageCapacity, SizeType chunkSize) noexcept;
 
-    ~UnorderedPool ();
+    ~UnorderedPool () noexcept;
 
-    void *Acquire ();
+    void *Acquire () noexcept;
 
-    void Free (void *entry);
+    void Free (void *entry) noexcept;
 
-    void Shrink ();
+    void Shrink () noexcept;
 
-    void Clean ();
+    void Clean () noexcept;
 
 private:
     UntypedPoolFields fields_;

@@ -5,49 +5,49 @@
 
 namespace Memory
 {
-UnorderedTrivialPool::UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize)
+UnorderedTrivialPool::UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize}
 {
 }
 
-UnorderedTrivialPool::~UnorderedTrivialPool ()
+UnorderedTrivialPool::~UnorderedTrivialPool () noexcept
 {
     Clean ();
 }
 
-void *UnorderedTrivialPool::Acquire ()
+void *UnorderedTrivialPool::Acquire () noexcept
 {
     void *entry = PoolDetail::Acquire (fields_, fields_.chunkSize_);
     assert (entry);
     return entry;
 }
 
-void UnorderedTrivialPool::Free (void *entry)
+void UnorderedTrivialPool::Free (void *entry) noexcept
 {
     PoolDetail::Free (fields_, entry, fields_.chunkSize_);
 }
 
-void UnorderedTrivialPool::Shrink ()
+void UnorderedTrivialPool::Shrink () noexcept
 {
     PoolDetail::Shrink (fields_, fields_.chunkSize_);
 }
 
-void UnorderedTrivialPool::Clean ()
+void UnorderedTrivialPool::Clean () noexcept
 {
     PoolDetail::TrivialClean (fields_, fields_.chunkSize_);
 }
 
-UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize)
+UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize}
 {
 }
 
-UnorderedPool::~UnorderedPool ()
+UnorderedPool::~UnorderedPool () noexcept
 {
     Clean ();
 }
 
-void *UnorderedPool::Acquire ()
+void *UnorderedPool::Acquire () noexcept
 {
     void *entry = PoolDetail::Acquire (fields_, fields_.chunkSize_);
     assert (entry);
@@ -55,7 +55,7 @@ void *UnorderedPool::Acquire ()
     return entry;
 }
 
-void UnorderedPool::Free (void *entry)
+void UnorderedPool::Free (void *entry) noexcept
 {
     assert (entry);
     PoolDetail::AssertFromPool (fields_, entry, fields_.chunkSize_);
@@ -63,12 +63,12 @@ void UnorderedPool::Free (void *entry)
     PoolDetail::Free (fields_, entry, fields_.chunkSize_);
 }
 
-void UnorderedPool::Shrink ()
+void UnorderedPool::Shrink () noexcept
 {
     PoolDetail::Shrink (fields_, fields_.chunkSize_);
 }
 
-void UnorderedPool::Clean ()
+void UnorderedPool::Clean () noexcept
 {
     PoolDetail::NonTrivialClean (fields_, fields_.chunkSize_, destructor_);
 }
