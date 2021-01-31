@@ -11,14 +11,14 @@ namespace Memory
 template <typename Entry>
 class TypedUnorderedTrivialPool
 {
-    static_assert (std::is_trivial_v <Entry> ());
+    static_assert (std::is_trivial_v <Entry>);
     static_assert (sizeof (Entry) >= sizeof (uintptr_t),
                    "Entry type size must be at equal or greater than pointer size!");
 
 public:
     explicit TypedUnorderedTrivialPool (SizeType pageCapacity) noexcept;
 
-    explicit ~TypedUnorderedTrivialPool () noexcept;
+    ~TypedUnorderedTrivialPool () noexcept;
 
     Entry *Acquire () noexcept;
 
@@ -53,7 +53,7 @@ class TypedUnorderedPool
 public:
     explicit TypedUnorderedPool (SizeType pageCapacity) noexcept;
 
-    explicit ~TypedUnorderedPool () noexcept;
+    ~TypedUnorderedPool () noexcept;
 
     Entry *Acquire () noexcept;
 
@@ -79,7 +79,7 @@ template <typename Entry>
 void EntryDefaultDestructor (Entry *entry) noexcept
 {
     assert (entry);
-    delete entry;
+    entry->~Entry ();
 }
 
 template <typename Entry>
@@ -163,7 +163,7 @@ void TypedUnorderedPool <Entry, Constructor, Destructor>::Clean () noexcept
         fields_, sizeof (Entry),
         [] (void *entry)
         {
-            Destructor (reinterpret_cast <Entry *> entry);
+            Destructor (reinterpret_cast <Entry *> (entry));
         });
 }
 }
