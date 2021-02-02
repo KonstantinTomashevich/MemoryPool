@@ -28,6 +28,10 @@ public:
 
     void Clean () noexcept;
 
+    SizeType GetPageCount () const;
+
+    SizeType GetPageCapacity () const;
+
 private:
     BasePoolFields fields_;
 };
@@ -62,6 +66,10 @@ public:
     void Shrink () noexcept;
 
     void Clean () noexcept;
+
+    SizeType GetPageCount () const;
+
+    SizeType GetPageCapacity () const;
 
 private:
     BasePoolFields fields_;
@@ -120,6 +128,18 @@ void TypedUnorderedTrivialPool <Entry>::Clean () noexcept
     PoolDetail::TrivialClean (fields_, sizeof (Entry));
 }
 
+template <typename Entry>
+SizeType TypedUnorderedTrivialPool <Entry>::GetPageCount () const
+{
+    return fields_.pageCount_;
+}
+
+template <typename Entry>
+SizeType TypedUnorderedTrivialPool <Entry>::GetPageCapacity () const
+{
+    return fields_.pageCapacity_;
+}
+
 template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
 TypedUnorderedPool <Entry, Constructor, Destructor>::TypedUnorderedPool (SizeType pageCapacity) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity}
@@ -165,5 +185,17 @@ void TypedUnorderedPool <Entry, Constructor, Destructor>::Clean () noexcept
         {
             Destructor (reinterpret_cast <Entry *> (entry));
         });
+}
+
+template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+SizeType TypedUnorderedPool <Entry, Constructor, Destructor>::GetPageCount () const
+{
+    return fields_.pageCount_;
+}
+
+template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+SizeType TypedUnorderedPool <Entry, Constructor, Destructor>::GetPageCapacity () const
+{
+    return fields_.pageCapacity_;
 }
 }

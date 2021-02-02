@@ -49,3 +49,16 @@ void TestPoolAcquireFree (Pool &pool, const Value &defaultValue, bool &destructe
     pool.Free (chunk);
     BOOST_REQUIRE (destructedFlag);
 }
+
+template <typename Pool>
+void TestAnyPoolAcquirePageCount (Pool &pool)
+{
+    // We expect that new empty pool has no pages.
+    BOOST_REQUIRE_MESSAGE (pool.GetPageCount () == 0u, "New empty pool must have 0 pages.");
+
+    for (uint32_t itemIndex = 0u; itemIndex < pool.GetPageCapacity () * 2u + 1u; ++itemIndex)
+    {
+        pool.Acquire ();
+        BOOST_REQUIRE(pool.GetPageCount () == 1u + itemIndex / pool.GetPageCapacity ());
+    }
+}

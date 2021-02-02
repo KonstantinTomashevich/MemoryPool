@@ -4,6 +4,8 @@
 
 BOOST_AUTO_TEST_SUITE (TypedUnorderedPool)
 
+#define DEFAULT_PAGE_CAPACITY 32u
+
 static bool nonTrivialDataDestructorCalled = false;
 
 void CustomNonTrivialDataDestructor (NonTrivialData *data) noexcept
@@ -16,8 +18,14 @@ BOOST_AUTO_TEST_CASE (AcquireAndFree)
 {
     nonTrivialDataDestructorCalled = false;
     Memory::TypedUnorderedPool <
-        NonTrivialData, Memory::EntryDefaultConstructor, CustomNonTrivialDataDestructor> pool {32u};
+        NonTrivialData, Memory::EntryDefaultConstructor, CustomNonTrivialDataDestructor> pool {DEFAULT_PAGE_CAPACITY};
     TestPoolAcquireFree (pool, NonTrivialData (), nonTrivialDataDestructorCalled);
+}
+
+BOOST_AUTO_TEST_CASE (AcquirePageCount)
+{
+    Memory::TypedUnorderedPool <NonTrivialData> pool {DEFAULT_PAGE_CAPACITY};
+    TestAnyPoolAcquirePageCount (pool);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

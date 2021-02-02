@@ -22,6 +22,10 @@ public:
 
     void Clean () noexcept;
 
+    SizeType GetPageCount () const;
+
+    SizeType GetPageCapacity () const;
+
 private:
     UntypedPoolFields fields_;
 };
@@ -44,6 +48,10 @@ public:
     void Shrink () noexcept;
 
     void Clean () noexcept;
+
+    SizeType GetPageCount () const;
+
+    SizeType GetPageCapacity () const;
 
 private:
     UntypedPoolFields fields_;

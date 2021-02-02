@@ -37,6 +37,16 @@ void UnorderedTrivialPool::Clean () noexcept
     PoolDetail::TrivialClean (fields_, fields_.chunkSize_);
 }
 
+SizeType UnorderedTrivialPool::GetPageCount () const
+{
+    return fields_.pageCount_;
+}
+
+SizeType UnorderedTrivialPool::GetPageCapacity () const
+{
+    return fields_.pageCapacity_;
+}
+
 UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
                               Constructor constructor, Destructor destructor) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize},
@@ -80,5 +90,15 @@ void UnorderedPool::Shrink () noexcept
 void UnorderedPool::Clean () noexcept
 {
     PoolDetail::NonTrivialClean (fields_, fields_.chunkSize_, destructor_);
+}
+
+SizeType UnorderedPool::GetPageCount () const
+{
+    return fields_.pageCount_;
+}
+
+SizeType UnorderedPool::GetPageCapacity () const
+{
+    return fields_.pageCapacity_;
 }
 }

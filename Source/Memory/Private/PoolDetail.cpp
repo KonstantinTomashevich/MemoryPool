@@ -49,7 +49,7 @@ void AssertPoolState (BasePoolFields &fields, SizeType chunkSize) noexcept
         [] (PagePointer page)
         {
             return true;
-        }) == fields.pagesCount_);
+        }) == fields.pageCount_);
 }
 
 void AssertFromPool (BasePoolFields &fields, void *entry, SizeType chunkSize) noexcept
@@ -112,7 +112,7 @@ void Shrink (BasePoolFields &fields, SizeType chunkSize) noexcept
     // TODO: Static thread local is used to avoid vector allocation during this call. Rethink about this solution.
     static thread_local std::vector <SizeType> freeChunkCounts {};
 
-    freeChunkCounts.resize (fields.pagesCount_);
+    freeChunkCounts.resize (fields.pageCount_);
     // TODO: Check shrink_to_fit performance foot print and think if it really makes things better.
     freeChunkCounts.shrink_to_fit ();
     std::fill (freeChunkCounts.begin (), freeChunkCounts.end (), 0u);
@@ -127,7 +127,7 @@ void Shrink (BasePoolFields &fields, SizeType chunkSize) noexcept
         PagePointer page = FindChunkPage (fields, chunkSize, freeChunk, pageIndex);
         // TODO: Should situations where page is not found be processed?
         assert (page);
-        assert (pageIndex < fields.pagesCount_);
+        assert (pageIndex < fields.pageCount_);
 
         ++freeChunkCounts[pageIndex];
         freeChunk = NextFreeChunk (freeChunk);
@@ -144,7 +144,7 @@ void Shrink (BasePoolFields &fields, SizeType chunkSize) noexcept
             PagePointer page = FindChunkPage (fields, chunkSize, freeChunk, pageIndex);
             // TODO: Should situations where page is not found be processed?
             assert (page);
-            assert (pageIndex < fields.pagesCount_);
+            assert (pageIndex < fields.pageCount_);
 
             assert (freeChunkCounts[pageIndex] <= fields.pageCapacity_);
             ChunkPointer next = NextFreeChunk (freeChunk);
@@ -247,17 +247,17 @@ void PushPage (BasePoolFields &fields, PagePointer page) noexcept
 {
     PageDetail::SetNextPage (page, fields.topPage_);
     fields.topPage_ = page;
-    ++fields.pagesCount_;
+    ++fields.pageCount_;
 }
 
 void PopPage (BasePoolFields &fields, PagePointer page, PagePointer previous, PagePointer next) noexcept
 {
-    assert (fields.pagesCount_);
+    assert (fields.pageCount_);
     assert (PageDetail::NextPage (page) == next);
     assert (PageDetail::NextPage (previous) == page);
 
     free (page);
-    --fields.pagesCount_;
+    --fields.pageCount_;
 
     if (previous)
     {

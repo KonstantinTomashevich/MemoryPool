@@ -4,9 +4,11 @@
 
 BOOST_AUTO_TEST_SUITE (UnorderedTrivialPool)
 
+#define DEFAULT_PAGE_CAPACITY 32u
+
 BOOST_AUTO_TEST_CASE (AcquireAndFree)
 {
-    Memory::UnorderedTrivialPool pool {32u, sizeof (TrivialData)};
+    Memory::UnorderedTrivialPool pool {DEFAULT_PAGE_CAPACITY, sizeof (TrivialData)};
     TestTrivialPoolAcquireFree (
         pool,
         [] (void *chunk)
@@ -18,6 +20,12 @@ BOOST_AUTO_TEST_CASE (AcquireAndFree)
             data->d_ = 125u;
             data->otherValue_ = 78912u;
         });
+}
+
+BOOST_AUTO_TEST_CASE (AcquirePageCount)
+{
+    Memory::UnorderedTrivialPool pool {DEFAULT_PAGE_CAPACITY, sizeof (TrivialData)};
+    TestAnyPoolAcquirePageCount (pool);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

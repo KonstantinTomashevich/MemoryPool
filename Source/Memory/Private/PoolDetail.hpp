@@ -77,7 +77,7 @@ void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destruct
     // TODO: Static thread local is used to avoid vector allocation during this call. Rethink about this solution.
     static thread_local std::vector <bool> isChunkUsed {};
 
-    isChunkUsed.resize (fields.pagesCount_ * fields.pageCapacity_);
+    isChunkUsed.resize (fields.pageCount_ * fields.pageCapacity_);
     // TODO: Check shrink_to_fit performance foot print and think if it really makes things better.
     isChunkUsed.shrink_to_fit ();
     std::fill (isChunkUsed.begin (), isChunkUsed.end (), true);
@@ -91,7 +91,7 @@ void NonTrivialClean (BasePoolFields &fields, SizeType chunkSize, const Destruct
             PagePointer page = FindChunkPage (fields, chunkSize, freeChunk, pageIndex);
             // TODO: Should situations where page is not found be processed?
             assert (page);
-            assert (pageIndex < fields.pagesCount_);
+            assert (pageIndex < fields.pageCount_);
 
             ChunkPointer pageFirstChunk = PageDetail::GetFirstChunk (page);
             assert (pageFirstChunk <= freeChunk);

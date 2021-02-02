@@ -15,7 +15,7 @@ struct BasePoolFields
 {
     ChunkPointer topFreeChunk_ = nullptr;
     PagePointer topPage_ = nullptr;
-    SizeType pagesCount_ = 0u;
+    SizeType pageCount_ = 0u;
     SizeType pageCapacity_ = 0u;
 };
 
