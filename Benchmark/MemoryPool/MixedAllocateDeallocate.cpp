@@ -232,7 +232,6 @@ static void MixedAllocateDeallocate_UnorderedPool (benchmark::State &state)
             {construct192b, destroy192b},
         ManagedObjectTypeDescriptor <Component1032b, decltype (construct1032b), decltype (destroy1032b)>
             {construct1032b, destroy1032b});
-    printf ("XXXXXXXXX\n");
 }
 
 static void MixedAllocateDeallocate_TypedUnorderedPool (benchmark::State &state)
