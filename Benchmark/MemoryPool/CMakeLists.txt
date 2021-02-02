@@ -3,7 +3,7 @@ file (GLOB_RECURSE HEADERS *.hpp)
 
 set (TARGET MemoryPoolBenchmark)
 add_executable (${TARGET} ${SOURCES} ${HEADERS})
-target_link_libraries (${TARGET} benchmark Boost::headers)
+target_link_libraries (${TARGET} benchmark Memory Boost::headers)
 
 # Enable exceptions for clang cl (they are disabled by default), because boost pool uses them.
 if (MSVC)

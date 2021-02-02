@@ -3,6 +3,10 @@
 #include <array>
 #include <cstdint>
 
+#include <Memory/UnorderedPool.hpp>
+
+#define MEMORY_LIBRARY_PAGE_CAPACITY 256u
+
 struct Component32b
 {
     uint64_t typeId_ = 0u;
@@ -28,3 +32,18 @@ struct Component1032b
 };
 
 static_assert (sizeof (Component1032b) == 1032u);
+
+template <typename ObjectType>
+Memory::UnorderedPool ConstructMemoryUnorderedPool ()
+{
+    return Memory::UnorderedPool (
+        MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType),
+        [] (void *chunk)
+        {
+            new (chunk) ObjectType ();
+        },
+        [] (void *chunk)
+        {
+            static_cast <ObjectType *> (chunk)->~ObjectType ();
+        });
+}

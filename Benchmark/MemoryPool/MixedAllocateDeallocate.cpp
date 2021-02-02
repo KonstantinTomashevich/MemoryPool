@@ -5,7 +5,10 @@
 
 #include <boost/pool/object_pool.hpp>
 
-#include "Types.hpp"
+#include <Memory/UnorderedPool.hpp>
+#include <Memory/TypedUnorderedPool.hpp>
+
+#include "Common.hpp"
 
 #define SAMPLE_SIZE 10000u
 
@@ -182,7 +185,103 @@ static void MixedAllocateDeallocate_BoostObjectPool (benchmark::State &state)
             {construct1032b, destroy1032b});
 }
 
+static void MixedAllocateDeallocate_UnorderedPool (benchmark::State &state)
+{
+    Memory::UnorderedPool pool32b = ConstructMemoryUnorderedPool <Component32b> ();
+    Memory::UnorderedPool pool192b = ConstructMemoryUnorderedPool <Component192b> ();
+    Memory::UnorderedPool pool1032b = ConstructMemoryUnorderedPool <Component1032b> ();
+
+    auto construct32b = [&pool32b] ()
+    {
+        return reinterpret_cast <Component32b *> (pool32b.Acquire ());
+    };
+
+    auto destroy32b = [&pool32b] (Component32b *object)
+    {
+        pool32b.Free (object);
+    };
+
+    auto construct192b = [&pool192b] ()
+    {
+        return reinterpret_cast <Component192b *> (pool192b.Acquire ());
+    };
+
+    auto destroy192b = [&pool192b] (Component192b *object)
+    {
+        pool192b.Free (object);
+    };
+
+    auto construct1032b = [&pool1032b] ()
+    {
+        return reinterpret_cast <Component1032b *> (pool1032b.Acquire ());
+    };
+
+    auto destroy1032b = [&pool1032b] (Component1032b *object)
+    {
+        pool1032b.Free (object);
+    };
+
+    AllocateDeallocateRoutine (
+        state,
+        ManagedObjectTypeDescriptor <Component32b, decltype (construct32b), decltype (destroy32b)>
+            {construct32b, destroy32b},
+        ManagedObjectTypeDescriptor <Component192b, decltype (construct192b), decltype (destroy192b)>
+            {construct192b, destroy192b},
+        ManagedObjectTypeDescriptor <Component1032b, decltype (construct1032b), decltype (destroy1032b)>
+            {construct1032b, destroy1032b});
+}
+
+static void MixedAllocateDeallocate_TypedUnorderedPool (benchmark::State &state)
+{
+    Memory::TypedUnorderedPool <Component32b> pool32b {MEMORY_LIBRARY_PAGE_CAPACITY};
+    Memory::TypedUnorderedPool <Component192b> pool192b {MEMORY_LIBRARY_PAGE_CAPACITY};
+    Memory::TypedUnorderedPool <Component1032b> pool1032b {MEMORY_LIBRARY_PAGE_CAPACITY};
+
+    auto construct32b = [&pool32b] ()
+    {
+        return pool32b.Acquire ();
+    };
+
+    auto destroy32b = [&pool32b] (Component32b *object)
+    {
+        pool32b.Free (object);
+    };
+
+    auto construct192b = [&pool192b] ()
+    {
+        return pool192b.Acquire ();
+    };
+
+    auto destroy192b = [&pool192b] (Component192b *object)
+    {
+        pool192b.Free (object);
+    };
+
+    auto construct1032b = [&pool1032b] ()
+    {
+        return pool1032b.Acquire ();
+    };
+
+    auto destroy1032b = [&pool1032b] (Component1032b *object)
+    {
+        pool1032b.Free (object);
+    };
+
+    AllocateDeallocateRoutine (
+        state,
+        ManagedObjectTypeDescriptor <Component32b, decltype (construct32b), decltype (destroy32b)>
+            {construct32b, destroy32b},
+        ManagedObjectTypeDescriptor <Component192b, decltype (construct192b), decltype (destroy192b)>
+            {construct192b, destroy192b},
+        ManagedObjectTypeDescriptor <Component1032b, decltype (construct1032b), decltype (destroy1032b)>
+            {construct1032b, destroy1032b});
+}
+
 // Min time is required, because these benchmarks are quite unstable if count of iterations is too small.
 BENCHMARK(MixedAllocateDeallocate_NewDelete)->MinTime (15.0);
 
 BENCHMARK(MixedAllocateDeallocate_BoostObjectPool)->MinTime (15.0);
+
+BENCHMARK(MixedAllocateDeallocate_UnorderedPool)->MinTime (15.0);
+
+BENCHMARK(MixedAllocateDeallocate_TypedUnorderedPool)->MinTime (15.0);

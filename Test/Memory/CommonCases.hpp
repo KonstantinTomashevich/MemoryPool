@@ -103,9 +103,12 @@ void TestAnyPoolShrink (Pool &pool)
 
     clearPage (0u);
     pool.Shrink ();
+    // TODO: Check that used chunks were not destructed (for non-trivial pools)?
     BOOST_REQUIRE (pool.GetPageCount () == 1u);
 
     clearPage (1u);
     pool.Shrink ();
     BOOST_REQUIRE (pool.GetPageCount () == 0u);
 }
+
+// TODO: Test clean methods, check if destructors for non-trivial pools are called correctly.

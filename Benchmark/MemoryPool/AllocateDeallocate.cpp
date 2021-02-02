@@ -4,7 +4,10 @@
 
 #include <boost/pool/object_pool.hpp>
 
-#include "Types.hpp"
+#include <Memory/UnorderedPool.hpp>
+#include <Memory/TypedUnorderedPool.hpp>
+
+#include "Common.hpp"
 
 #define SAMPLE_SIZE 10000u
 
@@ -74,6 +77,38 @@ static void AllocateDeallocate_BoostObjectPool (benchmark::State &state)
         });
 }
 
+template <typename ObjectType>
+static void AllocateDeallocate_UnorderedPool (benchmark::State &state)
+{
+    Memory::UnorderedPool pool = ConstructMemoryUnorderedPool <ObjectType> ();
+    AllocateDeallocateRoutine <ObjectType> (
+        state,
+        [&pool] ()
+        {
+            return reinterpret_cast <ObjectType *> (pool.Acquire ());
+        },
+        [&pool] (ObjectType *object)
+        {
+            pool.Free (object);
+        });
+}
+
+template <typename ObjectType>
+static void AllocateDeallocate_TypedUnorderedPool (benchmark::State &state)
+{
+    Memory::TypedUnorderedPool <ObjectType> pool {MEMORY_LIBRARY_PAGE_CAPACITY};
+    AllocateDeallocateRoutine <ObjectType> (
+        state,
+        [&pool] ()
+        {
+            return pool.Acquire ();
+        },
+        [&pool] (ObjectType *object)
+        {
+            pool.Free (object);
+        });
+}
+
 BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component32b);
 
 BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component192b);
@@ -85,3 +120,15 @@ BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component32b);
 BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component192b);
 
 BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component1032b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component32b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component192b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component1032b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component32b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component192b);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component1032b);
