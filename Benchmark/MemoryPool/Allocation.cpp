@@ -20,7 +20,7 @@ void AllocationRoutine (benchmark::State &state,
         auto *pool = constructor ();
         state.ResumeTiming ();
 
-        for (std::size_t item = 0; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
+        for (std::size_t item = 0u; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
         {
             auto *object = allocator (pool);
             benchmark::DoNotOptimize (object);
@@ -41,7 +41,7 @@ static void AllocateOnly_NewDelete (benchmark::State &state)
         std::vector <ObjectType *> allocated;
         state.ResumeTiming ();
 
-        for (std::size_t item = 0; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
+        for (std::size_t item = 0u; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
         {
             auto *object = new ObjectType ();
             state.PauseTiming ();

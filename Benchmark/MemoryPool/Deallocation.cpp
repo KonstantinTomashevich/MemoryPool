@@ -9,96 +9,117 @@
 
 #include "Common.hpp"
 
-#define POOL_MAX_SIZE 10000u
+#define DEALLOCATION_TEST_ITEM_COUNT 10000u
 
-template <typename ObjectType, typename AllocatorLambda, typename DeallocatorLambda>
-void DeallocationRoutine (benchmark::State &state, const AllocatorLambda &allocator,
-                          const DeallocatorLambda &deallocator)
+template <typename ConstructorLambda, typename AllocatorLambda, typename DeallocatorLambda>
+void DeallocationRoutine (benchmark::State &state, const ConstructorLambda &constructor,
+                          const AllocatorLambda &allocator, const DeallocatorLambda &deallocator)
 {
-    std::array <ObjectType *, POOL_MAX_SIZE> allocated {};
-    std::size_t allocatedCount = 0u;
-
+    std::array <void *, DEALLOCATION_TEST_ITEM_COUNT> allocated {};
     for (auto _ : state)
     {
         state.PauseTiming ();
-        if (allocatedCount < POOL_MAX_SIZE / 10u)
+        auto *pool = constructor ();
+
+        for (std::size_t item = 0u; item < DEALLOCATION_TEST_ITEM_COUNT; ++item)
         {
-            while (allocatedCount < POOL_MAX_SIZE)
-            {
-                allocated[allocatedCount++] = allocator ();
-            }
+            allocated[item] = allocator (pool);
         }
 
+        // Instead of freeing item simultaneously, free even-index and odd-index items separately
+        // to make benchmark closer to real situations where items are freed in random order.
         state.ResumeTiming ();
-        deallocator (allocated[--allocatedCount]);
-    }
 
-    while (allocatedCount > 0u)
-    {
-        deallocator (allocated[--allocatedCount]);
+        for (std::size_t item = 0u; item < DEALLOCATION_TEST_ITEM_COUNT; item += 2u)
+        {
+            deallocator (pool, allocated[item]);
+        }
+
+        for (std::size_t item = 1u; item < DEALLOCATION_TEST_ITEM_COUNT; item += 2u)
+        {
+            deallocator (pool, allocated[item]);
+        }
+
+        state.PauseTiming ();
+        delete pool;
+        state.ResumeTiming ();
     }
 }
 
 template <typename ObjectType>
 static void DeallocateOnly_NewDelete (benchmark::State &state)
 {
-    DeallocationRoutine <ObjectType> (
+    using PlaceholderType = std::size_t;
+    DeallocationRoutine (
         state,
-        [] ()
+        [] () -> PlaceholderType *
+        {
+            return nullptr;
+        },
+        [] (PlaceholderType *pool)
         {
             return new ObjectType ();
         },
-        [] (ObjectType *object)
+        [] (PlaceholderType *pool, void *object)
         {
-            delete object;
+            delete reinterpret_cast <ObjectType *> (object);
         });
 }
 
 template <typename ObjectType>
 static void DeallocateOnly_BoostObjectPool (benchmark::State &state)
 {
-    boost::object_pool <ObjectType> pool;
-    DeallocationRoutine <ObjectType> (
+    DeallocationRoutine (
         state,
-        [&pool] ()
+        [] ()
         {
-            return pool.construct ();
+            return new boost::object_pool <ObjectType> ();
         },
-        [&pool] (ObjectType *object)
+        [] (boost::object_pool <ObjectType> *pool)
         {
-            pool.destroy (object);
+            return pool->construct ();
+        },
+        [] (boost::object_pool <ObjectType> *pool, void *object)
+        {
+            pool->free (reinterpret_cast<ObjectType *>(object));
         });
 }
 
 template <typename ObjectType>
 static void DeallocateOnly_UnorderedPool (benchmark::State &state)
 {
-    Memory::UnorderedPool pool = ConstructMemoryUnorderedPool <ObjectType> ();
-    DeallocationRoutine <ObjectType> (
+    DeallocationRoutine (
         state,
-        [&pool] ()
+        [] ()
         {
-            return reinterpret_cast <ObjectType *> (pool.Acquire ());
+            return NewMemoryUnorderedPool <ObjectType> ();
         },
-        [&pool] (ObjectType *object)
+        [] (Memory::UnorderedPool *pool)
         {
-            pool.Free (object);
+            return pool->Acquire ();
+        },
+        [] (Memory::UnorderedPool *pool, void *object)
+        {
+            pool->Free (object);
         });
 }
 
 template <typename ObjectType>
 static void DeallocateOnly_TypedUnorderedPool (benchmark::State &state)
 {
-    Memory::TypedUnorderedPool <ObjectType> pool {MEMORY_LIBRARY_PAGE_CAPACITY};
-    DeallocationRoutine <ObjectType> (
+    DeallocationRoutine (
         state,
-        [&pool] ()
+        [] ()
         {
-            return pool.Acquire ();
+            return new Memory::TypedUnorderedPool <ObjectType> (MEMORY_LIBRARY_PAGE_CAPACITY);
         },
-        [&pool] (ObjectType *object)
+        [] (Memory::TypedUnorderedPool <ObjectType> *pool)
         {
-            pool.Free (object);
+            return pool->Acquire ();
+        },
+        [] (Memory::TypedUnorderedPool <ObjectType> *pool, void *object)
+        {
+            pool->Free (reinterpret_cast<ObjectType *>(object));
         });
 }
 
