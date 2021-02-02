@@ -51,47 +51,50 @@ template <typename... Descriptors>
 void AllocateDeallocateRoutine (benchmark::State &state, Descriptors... descriptors)
 {
     auto allocated = UnpackDescriptors (descriptors...);
-    std::size_t allocatedCount = 0u;
-
     for (auto _ : state)
     {
         // Start with filling full data sample.
-        while (allocatedCount < TEST_SAMPLE_SIZE)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; ++item)
         {
-            std::apply ([&allocatedCount] (auto &... parts)
+            std::apply ([&item] (auto &... parts)
                         {
-                            ((parts.objects_[allocatedCount] = parts.allocator_ ()), ...);
-                            ++allocatedCount;
+                            ((parts.objects_[item] = parts.allocator_ ()), ...);
                         }, allocated);
         }
 
-        // Drop half of objects to measure deallocation speed.
-        while (allocatedCount > TEST_SAMPLE_SIZE / 2u)
+        // Drop half of objects to measure deallocation speed. Deallocate
+        // only even-index items to simulate random order deallocation.
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; item += 2u)
         {
-            std::apply ([&allocatedCount] (auto &... parts)
+            std::apply ([&item] (auto &... parts)
                         {
-                            --allocatedCount;
-                            ((parts.deallocator_ (parts.objects_[allocatedCount])), ...);
+                            ((parts.deallocator_ (parts.objects_[item])), ...);
                         }, allocated);
         }
 
         // Allocate one fourth of objects again to simulate situations when allocation happens after deallocation.
-        while (allocatedCount < TEST_SAMPLE_SIZE / 2u + TEST_SAMPLE_SIZE / 4u)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            std::apply ([&allocatedCount] (auto &... parts)
+            std::apply ([&item] (auto &... parts)
                         {
-                            ((parts.objects_[allocatedCount] = parts.allocator_ ()), ...);
-                            ++allocatedCount;
+                            ((parts.objects_[item] = parts.allocator_ ()), ...);
                         }, allocated);
         }
 
         // Deallocate all objects left.
-        while (allocatedCount > 0u)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            std::apply ([&allocatedCount] (auto &... parts)
+            std::apply ([&item] (auto &... parts)
                         {
-                            --allocatedCount;
-                            ((parts.deallocator_ (parts.objects_[allocatedCount])), ...);
+                            ((parts.deallocator_ (parts.objects_[item])), ...);
+                        }, allocated);
+        }
+
+        for (std::size_t item = 1u; item < TEST_SAMPLE_SIZE; item += 2u)
+        {
+            std::apply ([&item] (auto &... parts)
+                        {
+                            ((parts.deallocator_ (parts.objects_[item])), ...);
                         }, allocated);
         }
     }
@@ -229,6 +232,7 @@ static void MixedAllocateDeallocate_UnorderedPool (benchmark::State &state)
             {construct192b, destroy192b},
         ManagedObjectTypeDescriptor <Component1032b, decltype (construct1032b), decltype (destroy1032b)>
             {construct1032b, destroy1032b});
+    printf ("XXXXXXXXX\n");
 }
 
 static void MixedAllocateDeallocate_TypedUnorderedPool (benchmark::State &state)
