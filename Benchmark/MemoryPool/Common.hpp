@@ -34,6 +34,21 @@ struct Component1032b
 static_assert (sizeof (Component1032b) == 1032u);
 
 template <typename ObjectType>
+Memory::UnorderedPool *NewMemoryUnorderedPool ()
+{
+    return new Memory::UnorderedPool (
+        MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType),
+        [] (void *chunk)
+        {
+            new (chunk) ObjectType ();
+        },
+        [] (void *chunk)
+        {
+            static_cast <ObjectType *> (chunk)->~ObjectType ();
+        });
+}
+
+template <typename ObjectType>
 Memory::UnorderedPool ConstructMemoryUnorderedPool ()
 {
     return Memory::UnorderedPool (
