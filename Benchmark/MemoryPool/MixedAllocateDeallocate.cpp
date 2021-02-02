@@ -10,14 +10,14 @@
 
 #include "Common.hpp"
 
-#define SAMPLE_SIZE 10000u
+#define TEST_SAMPLE_SIZE 10000u
 
 template <typename ObjectType, typename Allocator, typename Deallocator>
 struct ManagedObjectTypeDescriptor
 {
     struct RuntimeType
     {
-        std::array <ObjectType *, SAMPLE_SIZE> objects_;
+        std::array <ObjectType *, TEST_SAMPLE_SIZE> objects_;
         Allocator allocator_;
         Deallocator deallocator_;
     };
@@ -56,7 +56,7 @@ void AllocateDeallocateRoutine (benchmark::State &state, Descriptors... descript
     for (auto _ : state)
     {
         // Start with filling full data sample.
-        while (allocatedCount < SAMPLE_SIZE)
+        while (allocatedCount < TEST_SAMPLE_SIZE)
         {
             std::apply ([&allocatedCount] (auto &... parts)
                         {
@@ -66,7 +66,7 @@ void AllocateDeallocateRoutine (benchmark::State &state, Descriptors... descript
         }
 
         // Drop half of objects to measure deallocation speed.
-        while (allocatedCount > SAMPLE_SIZE / 2u)
+        while (allocatedCount > TEST_SAMPLE_SIZE / 2u)
         {
             std::apply ([&allocatedCount] (auto &... parts)
                         {
@@ -76,7 +76,7 @@ void AllocateDeallocateRoutine (benchmark::State &state, Descriptors... descript
         }
 
         // Allocate one fourth of objects again to simulate situations when allocation happens after deallocation.
-        while (allocatedCount < SAMPLE_SIZE / 2u + SAMPLE_SIZE / 4u)
+        while (allocatedCount < TEST_SAMPLE_SIZE / 2u + TEST_SAMPLE_SIZE / 4u)
         {
             std::apply ([&allocatedCount] (auto &... parts)
                         {

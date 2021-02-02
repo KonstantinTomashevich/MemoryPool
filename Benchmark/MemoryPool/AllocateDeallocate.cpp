@@ -9,39 +9,43 @@
 
 #include "Common.hpp"
 
-#define SAMPLE_SIZE 10000u
+#define TEST_SAMPLE_SIZE 10000u
 
 template <typename ObjectType, typename AllocatorLambda, typename DeallocatorLambda>
 void AllocateDeallocateRoutine (benchmark::State &state, const AllocatorLambda &allocator,
                                 const DeallocatorLambda &deallocator)
 {
-    std::array <ObjectType *, SAMPLE_SIZE> allocated {};
-    std::size_t allocatedCount = 0u;
-
+    std::array <ObjectType *, TEST_SAMPLE_SIZE> allocated {};
     for (auto _ : state)
     {
         // Start with filling full data sample.
-        while (allocatedCount < SAMPLE_SIZE)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; ++item)
         {
-            allocated[allocatedCount++] = allocator ();
+            allocated[item] = allocator ();
         }
 
-        // Drop half of objects to measure deallocation speed.
-        while (allocatedCount > SAMPLE_SIZE / 2u)
+        // Drop half of objects to measure deallocation speed. Deallocate
+        // only even-index items to simulate random order deallocation.
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; item += 2u)
         {
-            deallocator (allocated[--allocatedCount]);
+            deallocator (allocated[item]);
         }
 
         // Allocate one fourth of objects again to simulate situations when allocation happens after deallocation.
-        while (allocatedCount < SAMPLE_SIZE / 2u + SAMPLE_SIZE / 4u)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            allocated[allocatedCount++] = allocator ();
+            allocated[item] = allocator ();
         }
 
         // Deallocate all objects left.
-        while (allocatedCount > 0u)
+        for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            deallocator (allocated[--allocatedCount]);
+            deallocator (allocated[item]);
+        }
+
+        for (std::size_t item = 1u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
+        {
+            deallocator (allocated[item]);
         }
     }
 }
