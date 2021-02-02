@@ -6,8 +6,14 @@
 namespace Memory
 {
 UnorderedTrivialPool::UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize) noexcept
-    : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize}
+    : fields_ (UntypedPoolFields::ForEmptyPool (pageCapacity, chunkSize))
 {
+}
+
+UnorderedTrivialPool::UnorderedTrivialPool (UnorderedTrivialPool &&other) noexcept
+    : fields_ (other.fields_)
+{
+    other.fields_ = UntypedPoolFields::ForEmptyPool (fields_.pageCapacity_, fields_.chunkSize_);
 }
 
 UnorderedTrivialPool::~UnorderedTrivialPool () noexcept
@@ -53,6 +59,16 @@ UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
       constructor_ (std::move (constructor)),
       destructor_ (std::move (destructor))
 {
+    assert (constructor_);
+    assert (destructor_);
+}
+
+UnorderedPool::UnorderedPool (UnorderedPool &&other) noexcept
+    : fields_ (other.fields_),
+      constructor_ (other.constructor_),
+      destructor_ (other.destructor_)
+{
+    other.fields_ = UntypedPoolFields::ForEmptyPool (fields_.pageCapacity_, fields_.chunkSize_);
     assert (constructor_);
     assert (destructor_);
 }

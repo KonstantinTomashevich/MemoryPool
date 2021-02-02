@@ -253,8 +253,9 @@ void PushPage (BasePoolFields &fields, PagePointer page) noexcept
 void PopPage (BasePoolFields &fields, PagePointer page, PagePointer previous, PagePointer next) noexcept
 {
     assert (fields.pageCount_);
+    assert (page);
     assert (PageDetail::NextPage (page) == next);
-    assert (PageDetail::NextPage (previous) == page);
+    assert (!previous || PageDetail::NextPage (previous) == page);
 
     free (page);
     --fields.pageCount_;

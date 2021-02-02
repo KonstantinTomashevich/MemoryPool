@@ -10,7 +10,13 @@ namespace Memory
 class UnorderedTrivialPool
 {
 public:
+    using ValueType = void;
+
     UnorderedTrivialPool (SizeType pageCapacity, SizeType chunkSize) noexcept;
+
+    UnorderedTrivialPool (const UnorderedTrivialPool &other) = delete;
+
+    UnorderedTrivialPool (UnorderedTrivialPool &&other) noexcept;
 
     ~UnorderedTrivialPool () noexcept;
 
@@ -33,11 +39,17 @@ private:
 class UnorderedPool
 {
 public:
+    using ValueType = void;
+
     using Constructor =  std::function <void (void *)>;
     using Destructor =  std::function <void (void *)>;
 
     UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
                    Constructor constructor, Destructor destructor) noexcept;
+
+    UnorderedPool (const UnorderedPool &other) = delete;
+
+    UnorderedPool (UnorderedPool &&other) noexcept;
 
     ~UnorderedPool () noexcept;
 

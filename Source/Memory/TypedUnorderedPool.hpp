@@ -16,7 +16,13 @@ class TypedUnorderedTrivialPool
                    "Entry type size must be at equal or greater than pointer size!");
 
 public:
+    using ValueType = Entry;
+
     explicit TypedUnorderedTrivialPool (SizeType pageCapacity) noexcept;
+
+    TypedUnorderedTrivialPool (const TypedUnorderedTrivialPool &other) = delete;
+
+    TypedUnorderedTrivialPool (TypedUnorderedTrivialPool &&other) noexcept;
 
     ~TypedUnorderedTrivialPool () noexcept;
 
@@ -55,7 +61,13 @@ class TypedUnorderedPool
     static_assert (Destructor);
 
 public:
+    using ValueType = Entry;
+
     explicit TypedUnorderedPool (SizeType pageCapacity) noexcept;
+
+    TypedUnorderedPool (const TypedUnorderedPool &other) = delete;
+
+    TypedUnorderedPool (TypedUnorderedPool &&other) noexcept;
 
     ~TypedUnorderedPool () noexcept;
 
@@ -92,8 +104,15 @@ void EntryDefaultDestructor (Entry *entry) noexcept
 
 template <typename Entry>
 TypedUnorderedTrivialPool <Entry>::TypedUnorderedTrivialPool (SizeType pageCapacity) noexcept
-    : fields_ {nullptr, nullptr, 0u, pageCapacity}
+    : fields_ (BasePoolFields::ForEmptyPool (pageCapacity))
 {
+}
+
+template <typename Entry>
+TypedUnorderedTrivialPool <Entry>::TypedUnorderedTrivialPool (TypedUnorderedTrivialPool &&other) noexcept
+    : fields_ (other.fields_)
+{
+    other.fields_ = BasePoolFields::ForEmptyPool (fields_.pageCapacity_);
 }
 
 template <typename Entry>
@@ -144,6 +163,13 @@ template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destruc
 TypedUnorderedPool <Entry, Constructor, Destructor>::TypedUnorderedPool (SizeType pageCapacity) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity}
 {
+}
+
+template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+TypedUnorderedPool <Entry, Constructor, Destructor>::TypedUnorderedPool (TypedUnorderedPool &&other) noexcept
+    : fields_ (other.fields_)
+{
+    other.fields_ = BasePoolFields::ForEmptyPool (fields_.pageCapacity_);
 }
 
 template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>

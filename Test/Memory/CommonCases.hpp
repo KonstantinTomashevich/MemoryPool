@@ -40,10 +40,10 @@ void TestTrivialPoolAcquireFree (Pool &pool, const ChunkEditor &chunkEditor)
     pool.Free (chunk);
 }
 
-template <typename Pool, typename Value>
-void TestPoolAcquireFree (Pool &pool, const Value &defaultValue, bool &destructedFlag)
+template <typename Pool, typename RealValueType>
+void TestPoolAcquireFree (Pool &pool, const RealValueType &defaultValue, bool &destructedFlag)
 {
-    auto *chunk = static_cast <Value *> (pool.Acquire ());
+    auto *chunk = static_cast <RealValueType *> (pool.Acquire ());
     BOOST_REQUIRE (chunk);
     BOOST_REQUIRE (*chunk == defaultValue);
     pool.Free (chunk);
@@ -53,12 +53,59 @@ void TestPoolAcquireFree (Pool &pool, const Value &defaultValue, bool &destructe
 template <typename Pool>
 void TestAnyPoolAcquirePageCount (Pool &pool)
 {
-    // We expect that new empty pool has no pages.
     BOOST_REQUIRE_MESSAGE (pool.GetPageCount () == 0u, "New empty pool must have 0 pages.");
-
     for (uint32_t itemIndex = 0u; itemIndex < pool.GetPageCapacity () * 2u + 1u; ++itemIndex)
     {
         pool.Acquire ();
         BOOST_REQUIRE(pool.GetPageCount () == 1u + itemIndex / pool.GetPageCapacity ());
     }
+}
+
+template <typename Pool>
+void TestAnyPoolShrink (Pool &pool)
+{
+    BOOST_REQUIRE_MESSAGE (pool.GetPageCount () == 0u, "New empty pool must have 0 pages.");
+    std::vector <std::vector <typename Pool::ValueType *>> valuesPerPage;
+    valuesPerPage.resize (2u, {});
+
+    for (uint32_t itemIndex = 0u; itemIndex < pool.GetPageCapacity () * 2u; ++itemIndex)
+    {
+        valuesPerPage[itemIndex / pool.GetPageCapacity ()].push_back (pool.Acquire ());
+    }
+
+    BOOST_REQUIRE (pool.GetPageCount () == 2u);
+    pool.Shrink ();
+    BOOST_REQUIRE (pool.GetPageCount () == 2u);
+
+    // Free half of first and half of second pages values.
+    for (auto &pageValues : valuesPerPage)
+    {
+        for (uint32_t itemIndex = pageValues.size () / 2u; itemIndex < pageValues.size (); ++itemIndex)
+        {
+            pool.Free (pageValues[itemIndex]);
+        }
+
+        pageValues.resize (pageValues.size () / 2u);
+    }
+
+    pool.Shrink ();
+    BOOST_REQUIRE (pool.GetPageCount () == 2u);
+
+    auto clearPage = [&valuesPerPage, &pool] (uint32_t pageIndex)
+    {
+        for (uint32_t itemIndex = 0u; itemIndex < valuesPerPage[pageIndex].size (); ++itemIndex)
+        {
+            pool.Free (valuesPerPage[pageIndex][itemIndex]);
+        }
+
+        valuesPerPage[pageIndex].clear ();
+    };
+
+    clearPage (0u);
+    pool.Shrink ();
+    BOOST_REQUIRE (pool.GetPageCount () == 1u);
+
+    clearPage (1u);
+    pool.Shrink ();
+    BOOST_REQUIRE (pool.GetPageCount () == 0u);
 }

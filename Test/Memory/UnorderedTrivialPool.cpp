@@ -28,4 +28,10 @@ BOOST_AUTO_TEST_CASE (AcquirePageCount)
     TestAnyPoolAcquirePageCount (pool);
 }
 
+BOOST_AUTO_TEST_CASE (Shrink)
+{
+    Memory::UnorderedTrivialPool pool {DEFAULT_PAGE_CAPACITY, sizeof (TrivialData)};
+    TestAnyPoolShrink (pool);
+}
+
 BOOST_AUTO_TEST_SUITE_END ()

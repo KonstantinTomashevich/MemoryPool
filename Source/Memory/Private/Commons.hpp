@@ -13,6 +13,8 @@ using ChunkPointer = void *;
 
 struct BasePoolFields
 {
+    static BasePoolFields ForEmptyPool (SizeType pageCapacity);
+
     ChunkPointer topFreeChunk_ = nullptr;
     PagePointer topPage_ = nullptr;
     SizeType pageCount_ = 0u;
@@ -21,6 +23,8 @@ struct BasePoolFields
 
 struct UntypedPoolFields : public BasePoolFields
 {
+    static UntypedPoolFields ForEmptyPool (SizeType pageCapacity, SizeType chunkSize);
+
     SizeType chunkSize_ = 0u;
 };
 }
