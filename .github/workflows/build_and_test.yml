@@ -25,7 +25,6 @@ jobs:
 
     env:
       EXECUTABLE_SUFFIX: ${{ matrix.platform == 'windows-latest' && '.exe' || ''}}
-      CMAKE_ADDITIONAL_ARGUMENTS: ${{ matrix.platform != 'macos-latest' && '-DBoost_DIR=$BOOST_ROOT_1_72_0' || ''}}
 
     steps:
       - name: Setup Boost using Homebrew
@@ -47,7 +46,7 @@ jobs:
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
         env:
           BUILD_TYPE: ${{matrix.build_type}}
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_ADDITIONAL_ARGUMENTS
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBoost_DIR=$BOOST_ROOT_1_72_0
 
       - name: Build
         shell: bash
