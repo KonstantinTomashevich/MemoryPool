@@ -29,12 +29,12 @@ jobs:
     steps:
     - name: Setup Boost using Chocolatey
       shell: bash
-      run: choco install boost
+      run: choco install boost-msvc-14.2
       if: matrix.platform == 'windows-latest'
 
     - name: Setup Boost using Apt-Get
       shell: bash
-      run: sudo apt-get install boost
+      run: sudo apt-get install libboost-all-dev
       if: matrix.platform == 'ubuntu-latest'
 
     - name: Setup Boost using Homebrew
