@@ -189,3 +189,5 @@ void TypedUnorderedTrivialPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
     pool_.Free (object);
 }
+
+// TODO: Shrink and Clean operations benchmarks?
