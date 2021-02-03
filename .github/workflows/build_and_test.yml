@@ -17,29 +17,36 @@ jobs:
     strategy:
       matrix:
         build_type: [Release, Debug]
-        # TODO: Add windows-latest
         # TODO: Add compilers matrix
-        platform: [ubuntu-latest, macos-latest]
+        platform: [windows-latest, ubuntu-latest, macos-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.platform }}
+
+    env:
+      EXECUTABLE_SUFFIX: ${{ matrix.platform == 'windows-latest' && '.exe' || ''}}
     
     steps:
-    - name: Set up Homebrew
-      id: set-up-homebrew
-      uses: Homebrew/actions/setup-homebrew@master
-      if: matrix.platform != 'windows-latest'
-    
+    - name: Setup Boost using Chocolatey
+      shell: bash
+      run: choco install boost
+      if: matrix.platform == 'windows-latest'
+
+    - name: Setup Boost using Apt-Get
+      shell: bash
+      run: sudo apt-get install boost
+      if: matrix.platform == 'ubuntu-latest'
+
     - name: Setup Boost using Homebrew
       shell: bash
       run: brew install boost
-      if: matrix.platform != 'windows-latest'
-          
+      if: matrix.platform == 'macos-latest'
+
     - uses: actions/checkout@v2
       with:
         submodules: true
 
-    - name: Create Build Environment
+    - name: Setup build environment
       run: cmake -E make_directory ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
 
     - name: Configure CMake
@@ -52,13 +59,16 @@ jobs:
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build
+      shell: bash
       working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
       run: cmake --build .
 
     - name: Test
+      shell: bash
       working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-      run: ./MemoryTest
+      run: ./MemoryTest${EXECUTABLE_SUFFIX}
 
-    - name: Run benchmark
+    - name: Run benchmarks
+      shell: bash
       working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-      run: ./MemoryPoolBenchmark
+      run: ./MemoryPoolBenchmark${EXECUTABLE_SUFFIX}
