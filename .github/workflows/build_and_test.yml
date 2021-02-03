@@ -2,11 +2,11 @@ name: Build And Test
 
 on:
   push:
-    branches: 
-    - master
+    branches:
+      - master
   pull_request:
-    branches: 
-    - master
+    branches:
+      - master
 
 env:
   BUILD_DIRECTORY: Build
@@ -16,54 +16,50 @@ jobs:
   build_and_test:
     strategy:
       matrix:
-        build_type: [Release, Debug]
+        build_type: [ Release, Debug ]
         # TODO: Add compilers matrix
-        platform: [windows-latest, ubuntu-latest, macos-latest]
+        platform: [ windows-latest, ubuntu-latest, macos-latest ]
       fail-fast: false
 
     runs-on: ${{ matrix.platform }}
 
     env:
       EXECUTABLE_SUFFIX: ${{ matrix.platform == 'windows-latest' && '.exe' || ''}}
-    
+      CMAKE_ADDITIONAL_ARGUMENTS: ${{ matrix.platform != 'macos-latest' && '-DBoost_DIR=$BOOST_ROOT_1_72_0' || ''}}
+
     steps:
-    - name: Configure Boost path
-      shell: bash
-      run: export BOOST_ROOT="$BOOST_ROOT_1_72_0"
-      if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
+      - name: Setup Boost using Homebrew
+        shell: bash
+        run: brew install boost
+        if: matrix.platform == 'macos-latest'
 
-    - name: Setup Boost using Homebrew
-      shell: bash
-      run: brew install boost
-      if: matrix.platform == 'macos-latest'
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
 
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
+      - name: Setup build environment
+        run: cmake -E make_directory ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
 
-    - name: Setup build environment
-      run: cmake -E make_directory ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
+      - name: Configure CMake
+        # Use a bash shell so we can use the same syntax for environment variable
+        # access regardless of the host operating system
+        shell: bash
+        working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
+        env:
+          BUILD_TYPE: ${{matrix.build_type}}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_ADDITIONAL_ARGUMENTS
 
-    - name: Configure CMake
-      # Use a bash shell so we can use the same syntax for environment variable
-      # access regardless of the host operating system
-      shell: bash
-      working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
-      env:
-        BUILD_TYPE: ${{matrix.build_type}}
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      - name: Build
+        shell: bash
+        working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
+        run: cmake --build .
 
-    - name: Build
-      shell: bash
-      working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
-      run: cmake --build .
+      - name: Test
+        shell: bash
+        working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryTest${EXECUTABLE_SUFFIX}
 
-    - name: Test
-      shell: bash
-      working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-      run: ./MemoryTest${EXECUTABLE_SUFFIX}
-
-    - name: Run benchmarks
-      shell: bash
-      working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-      run: ./MemoryPoolBenchmark${EXECUTABLE_SUFFIX}
+      - name: Run benchmarks
+        shell: bash
+        working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryPoolBenchmark${EXECUTABLE_SUFFIX}
