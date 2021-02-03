@@ -14,7 +14,9 @@ jobs:
       matrix:
         build_type: [Release, Debug]
         # TODO: Add windows-latest
-        platform: [ ubuntu-latest, macos-latest ]
+        platform: [ubuntu-latest, macos-latest]
+        compiler: [gcc, clang]
+      fail-fast: false
 
     runs-on: ${{ matrix.platform }}
     
