@@ -8,10 +8,6 @@ on:
     branches:
       - master
 
-env:
-  BUILD_DIRECTORY: Build
-  RUNTIME_DIRECTORY: Build/Bin
-
 jobs:
   build_and_test:
     strategy:
@@ -29,6 +25,9 @@ jobs:
 
     env:
       EXECUTABLE_SUFFIX: ${{matrix.platform == 'windows-latest' && '.exe' || ''}}
+      BUILD_DIRECTORY: Build
+      BUILD_TYPE: ${{matrix.build_type}}
+      RUNTIME_DIRECTORY: ${{matrix.platform == 'windows-latest' && 'Build/Bin/${{matrix.build_type}}' || 'Build/Bin'}}
 
     steps:
       - name: Setup Boost environment
@@ -48,8 +47,6 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
-        env:
-          BUILD_TYPE: ${{matrix.build_type}}
         run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
       - name: Build
