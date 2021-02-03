@@ -8,6 +8,10 @@ on:
     branches: 
     - master
 
+env:
+  BUILD_DIRECTORY: Build
+  RUNTIME_DIRECTORY: Build/Bin
+
 jobs:
   build_and_test:
     strategy:
@@ -15,7 +19,7 @@ jobs:
         build_type: [Release, Debug]
         # TODO: Add windows-latest
         # TODO: Add compilers matrix
-        platform: [ubuntu-20.04, macos-latest]
+        platform: [ubuntu-latest, macos-latest]
       fail-fast: false
 
     runs-on: ${{ matrix.platform }}
@@ -36,18 +40,25 @@ jobs:
         submodules: true
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      run: cmake -E make_directory ${{github.workspace}}/$BUILD_DIRECTORY
 
     - name: Configure CMake
       # Use a bash shell so we can use the same syntax for environment variable
       # access regardless of the host operating system
       shell: bash
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/$BUILD_DIRECTORY
       env:
         BUILD_TYPE: ${{matrix.build_type}}
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build
-      working-directory: ${{github.workspace}}/build
+      working-directory: ${{github.workspace}}/$BUILD_DIRECTORY
       run: cmake --build .
-    # TODO: Add tests and benchmark execution.
+
+    - name: Test
+      working-directory: ${{github.workspace}}/$RUNTIME_DIRECTORY
+      run: ./MemoryTest
+
+    - name: Run benchmark
+      working-directory: ${{github.workspace}}/$RUNTIME_DIRECTORY
+      run: ./MemoryPoolBenchmark
