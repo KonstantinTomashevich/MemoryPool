@@ -24,15 +24,19 @@ jobs:
     runs-on: ${{matrix.platform}}
 
     env:
-      EXECUTABLE_SUFFIX: ${{matrix.platform == 'windows-latest' && '.exe' || ''}}
       BUILD_DIRECTORY: Build
+      RUNTIME_DIRECTORY: Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
-      RUNTIME_DIRECTORY: ${{matrix.platform == 'windows-latest' && 'Build/Bin/${{matrix.build_type}}' || 'Build/Bin'}}
 
     steps:
       - name: Setup Boost environment
         run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
         if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
+
+      - name: Setup Windows-specific environment
+        run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV &&
+             echo "RUNTIME_DIRECTORY=$Env:RUNTIME_DIRECTORY/$Env:BUILD_TYPE" >> $Env:GITHUB_ENV
+        if: matrix.platform == 'windows-latest'
 
       - name: Setup Boost using Homebrew
         run: brew install boost
