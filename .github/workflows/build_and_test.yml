@@ -34,8 +34,7 @@ jobs:
         if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
 
       - name: Setup Windows-specific environment
-        run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV &&
-             echo "RUNTIME_DIRECTORY=$Env:RUNTIME_DIRECTORY/$Env:BUILD_TYPE" >> $Env:GITHUB_ENV
+        run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
         if: matrix.platform == 'windows-latest'
 
       - name: Setup Boost using Homebrew
