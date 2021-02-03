@@ -27,15 +27,10 @@ jobs:
       EXECUTABLE_SUFFIX: ${{ matrix.platform == 'windows-latest' && '.exe' || ''}}
     
     steps:
-    - name: Setup Boost using Chocolatey
+    - name: Configure Boost path
       shell: bash
-      run: choco install boost-msvc-14.2
-      if: matrix.platform == 'windows-latest'
-
-    - name: Setup Boost using Apt-Get
-      shell: bash
-      run: sudo apt-get install libboost-all-dev
-      if: matrix.platform == 'ubuntu-latest'
+      run: export BOOST_ROOT="$BOOST_ROOT_1_72_0"
+      if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
 
     - name: Setup Boost using Homebrew
       shell: bash
