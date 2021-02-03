@@ -1,28 +1,22 @@
 #include <benchmark/benchmark.h>
 
-#include <boost/pool/object_pool.hpp>
-
-#include <Memory/UnorderedPool.hpp>
-#include <Memory/TypedUnorderedPool.hpp>
-
-#include "Common.hpp"
+#include "Adapters.hpp"
+#include "DataTypes.hpp"
 
 #define ALLOCATION_TEST_ITEM_COUNT 10000u
 
-template <typename ConstructorLambda, typename AllocatorLambda>
-void AllocationRoutine (benchmark::State &state,
-                        const ConstructorLambda &constructor,
-                        const AllocatorLambda &allocator)
+template <typename Pool>
+void Allocation (benchmark::State &state)
 {
     for (auto _ : state)
     {
         state.PauseTiming ();
-        auto *pool = constructor ();
+        auto *pool = new Pool ();
         state.ResumeTiming ();
 
         for (std::size_t item = 0u; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
         {
-            auto *object = allocator (pool);
+            auto *object = pool->Acquire ();
             benchmark::DoNotOptimize (object);
         }
 
@@ -32,98 +26,50 @@ void AllocationRoutine (benchmark::State &state,
     }
 }
 
-template <typename ObjectType>
-static void AllocateOnly_NewDelete (benchmark::State &state)
-{
-    for (auto _ : state)
-    {
-        state.PauseTiming ();
-        std::vector <ObjectType *> allocated;
-        state.ResumeTiming ();
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <Component32b>);
 
-        for (std::size_t item = 0u; item < ALLOCATION_TEST_ITEM_COUNT; ++item)
-        {
-            auto *object = new ObjectType ();
-            state.PauseTiming ();
-            allocated.push_back (object);
-            state.ResumeTiming ();
-        }
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <Component192b>);
 
-        state.PauseTiming ();
-        for (ObjectType *object : allocated)
-        {
-            delete object;
-        }
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <Component1032b>);
 
-        state.ResumeTiming ();
-    }
-}
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <TrivialComponent32b>);
 
-template <typename ObjectType>
-static void AllocateOnly_BoostObjectPool (benchmark::State &state)
-{
-    AllocationRoutine (
-        state,
-        [] ()
-        {
-            return new boost::object_pool <ObjectType> ();
-        },
-        [] (boost::object_pool <ObjectType> *pool)
-        {
-            return pool->construct ();
-        });
-}
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <TrivialComponent192b>);
 
-template <typename ObjectType>
-static void AllocateOnly_UnorderedPool (benchmark::State &state)
-{
-    AllocationRoutine (
-        state,
-        [] ()
-        {
-            return NewMemoryUnorderedPool <ObjectType> ();
-        },
-        [] (Memory::UnorderedPool *pool)
-        {
-            return pool->Acquire ();
-        });
-}
+BENCHMARK_TEMPLATE(Allocation, NewDeleteAdapter <TrivialComponent1032b>);
 
-template <typename ObjectType>
-static void AllocateOnly_TypedUnorderedPool (benchmark::State &state)
-{
-    AllocationRoutine (
-        state,
-        [] ()
-        {
-            return new Memory::TypedUnorderedPool <ObjectType> (MEMORY_LIBRARY_PAGE_CAPACITY);
-        },
-        [] (Memory::TypedUnorderedPool <ObjectType> *pool)
-        {
-            return pool->Acquire ();
-        });
-}
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <Component32b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component32b);
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <Component192b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component192b);
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_NewDelete, Component1032b);
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component32b);
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component192b);
+BENCHMARK_TEMPLATE(Allocation, BoostObjectPoolAdapter <TrivialComponent1032b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_BoostObjectPool, Component1032b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedPoolAdapter <Component32b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_UnorderedPool, Component32b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedPoolAdapter <Component192b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_UnorderedPool, Component192b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_UnorderedPool, Component1032b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedTrivialPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_TypedUnorderedPool, Component32b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedTrivialPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_TypedUnorderedPool, Component192b);
+BENCHMARK_TEMPLATE(Allocation, UnorderedTrivialPoolAdapter <TrivialComponent1032b>);
 
-BENCHMARK_TEMPLATE(AllocateOnly_TypedUnorderedPool, Component1032b);
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedPoolAdapter <Component32b>);
+
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedPoolAdapter <Component192b>);
+
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedPoolAdapter <Component1032b>);
+
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedTrivialPoolAdapter <TrivialComponent32b>);
+
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedTrivialPoolAdapter <TrivialComponent192b>);
+
+BENCHMARK_TEMPLATE(Allocation, TypedUnorderedTrivialPoolAdapter <TrivialComponent1032b>);

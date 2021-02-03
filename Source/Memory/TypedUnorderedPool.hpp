@@ -57,6 +57,12 @@ class TypedUnorderedPool
     static_assert (sizeof (Entry) >= sizeof (uintptr_t),
                    "Entry type size must be at equal or greater than pointer size!");
 
+    static_assert (!std::is_trivial_v <Entry> ||
+                   Constructor != EntryDefaultConstructor <Entry> ||
+                   Destructor != EntryDefaultDestructor <Entry>,
+                   "There is no practical sense in using trivial type with default constructor "
+                   "and destructor, consider using TypedUnorderedTrivialPool instead.");
+
     static_assert (Constructor);
     static_assert (Destructor);
 

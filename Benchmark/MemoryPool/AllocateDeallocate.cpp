@@ -1,138 +1,100 @@
-#include <cstdlib>
-
 #include <benchmark/benchmark.h>
 
-#include <boost/pool/object_pool.hpp>
-
-#include <Memory/UnorderedPool.hpp>
-#include <Memory/TypedUnorderedPool.hpp>
-
-#include "Common.hpp"
+#include "Adapters.hpp"
+#include "DataTypes.hpp"
 
 #define TEST_SAMPLE_SIZE 10000u
 
-template <typename ObjectType, typename AllocatorLambda, typename DeallocatorLambda>
-void AllocateDeallocateRoutine (benchmark::State &state, const AllocatorLambda &allocator,
-                                const DeallocatorLambda &deallocator)
+template <typename Pool>
+void AllocateDeallocate (benchmark::State &state)
 {
-    std::array <ObjectType *, TEST_SAMPLE_SIZE> allocated {};
+    std::array <typename Pool::EntryType *, TEST_SAMPLE_SIZE> allocated {};
     for (auto _ : state)
     {
+        state.PauseTiming ();
+        auto *pool = new Pool ();
+        state.ResumeTiming ();
+
         // Start with filling full data sample.
         for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; ++item)
         {
-            allocated[item] = allocator ();
+            allocated[item] = pool->Acquire ();
         }
 
         // Drop half of objects to measure deallocation speed. Deallocate
         // only even-index items to simulate random order deallocation.
         for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE; item += 2u)
         {
-            deallocator (allocated[item]);
+            pool->Free (allocated[item]);
         }
 
         // Allocate one fourth of objects again to simulate situations when allocation happens after deallocation.
         for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            allocated[item] = allocator ();
+            allocated[item] = pool->Acquire ();
         }
 
         // Deallocate all objects left.
         for (std::size_t item = 0u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            deallocator (allocated[item]);
+            pool->Free (allocated[item]);
         }
 
         for (std::size_t item = 1u; item < TEST_SAMPLE_SIZE / 2u; item += 2u)
         {
-            deallocator (allocated[item]);
+            pool->Free (allocated[item]);
         }
+
+        state.PauseTiming ();
+        delete pool;
+        state.ResumeTiming ();
     }
 }
 
-template <typename ObjectType>
-static void AllocateDeallocate_NewDelete (benchmark::State &state)
-{
-    AllocateDeallocateRoutine <ObjectType> (
-        state,
-        [] ()
-        {
-            return new ObjectType ();
-        },
-        [] (ObjectType *object)
-        {
-            delete object;
-        });
-}
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <Component32b>);
 
-template <typename ObjectType>
-static void AllocateDeallocate_BoostObjectPool (benchmark::State &state)
-{
-    boost::object_pool <ObjectType> pool;
-    AllocateDeallocateRoutine <ObjectType> (
-        state,
-        [&pool] ()
-        {
-            return pool.construct ();
-        },
-        [&pool] (ObjectType *object)
-        {
-            pool.destroy (object);
-        });
-}
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <Component192b>);
 
-template <typename ObjectType>
-static void AllocateDeallocate_UnorderedPool (benchmark::State &state)
-{
-    Memory::UnorderedPool pool = ConstructMemoryUnorderedPool <ObjectType> ();
-    AllocateDeallocateRoutine <ObjectType> (
-        state,
-        [&pool] ()
-        {
-            return reinterpret_cast <ObjectType *> (pool.Acquire ());
-        },
-        [&pool] (ObjectType *object)
-        {
-            pool.Free (object);
-        });
-}
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <Component1032b>);
 
-template <typename ObjectType>
-static void AllocateDeallocate_TypedUnorderedPool (benchmark::State &state)
-{
-    Memory::TypedUnorderedPool <ObjectType> pool {MEMORY_LIBRARY_PAGE_CAPACITY};
-    AllocateDeallocateRoutine <ObjectType> (
-        state,
-        [&pool] ()
-        {
-            return pool.Acquire ();
-        },
-        [&pool] (ObjectType *object)
-        {
-            pool.Free (object);
-        });
-}
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, NewDeleteAdapter <TrivialComponent1032b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_NewDelete, Component1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <Component32b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <Component192b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_BoostObjectPool, Component1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, BoostObjectPoolAdapter <TrivialComponent1032b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_UnorderedPool, Component1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedPoolAdapter <Component32b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component32b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedPoolAdapter <Component192b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component192b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(AllocateDeallocate_TypedUnorderedPool, Component1032b);
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedTrivialPoolAdapter <TrivialComponent32b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedTrivialPoolAdapter <TrivialComponent192b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, UnorderedTrivialPoolAdapter <TrivialComponent1032b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedPoolAdapter <Component32b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedPoolAdapter <Component192b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedPoolAdapter <Component1032b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedTrivialPoolAdapter <TrivialComponent32b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedTrivialPoolAdapter <TrivialComponent192b>);
+
+BENCHMARK_TEMPLATE(AllocateDeallocate, TypedUnorderedTrivialPoolAdapter <TrivialComponent1032b>);
