@@ -21,6 +21,10 @@ jobs:
         platform: [ windows-latest, ubuntu-latest, macos-latest ]
       fail-fast: false
 
+    defaults:
+      run:
+        shell: pwsh
+
     runs-on: ${{matrix.platform}}
 
     env:
@@ -28,12 +32,10 @@ jobs:
 
     steps:
       - name: Setup Boost environment
-        shell: bash
-        run: export BOOST_ROOT="$BOOST_ROOT_1_72_0"
+        run: $Env:BOOST_ROOT="$Env:BOOST_ROOT_1_72_0"
         if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
 
       - name: Setup Boost using Homebrew
-        shell: bash
         run: brew install boost
         if: matrix.platform == 'macos-latest'
 
@@ -45,25 +47,19 @@ jobs:
         run: cmake -E make_directory ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
 
       - name: Configure CMake
-        # Use a bash shell so we can use the same syntax for environment variable
-        # access regardless of the host operating system
-        shell: bash
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
         env:
           BUILD_TYPE: ${{matrix.build_type}}
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$Env:BUILD_TYPE
 
       - name: Build
-        shell: bash
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
         run: cmake --build .
 
       - name: Test
-        shell: bash
         working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-        run: ./MemoryTest${EXECUTABLE_SUFFIX}
+        run: ./MemoryTest$Env:EXECUTABLE_SUFFIX
 
       - name: Run benchmarks
-        shell: bash
         working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-        run: ./MemoryPoolBenchmark${EXECUTABLE_SUFFIX}
+        run: ./MemoryPoolBenchmark$Env:EXECUTABLE_SUFFIX
