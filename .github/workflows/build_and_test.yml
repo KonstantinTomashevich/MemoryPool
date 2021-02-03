@@ -21,12 +21,12 @@ jobs:
     - name: Set up Homebrew
       id: set-up-homebrew
       uses: Homebrew/actions/setup-homebrew@master
-      if: matrix.platform != windows-latest
+      if: matrix.platform != 'windows-latest'
     
     - name: Setup Boost using Homebrew
       shell: bash
       run: brew install boost
-      if: matrix.platform != windows-latest
+      if: matrix.platform != 'windows-latest'
           
     - uses: actions/checkout@v2
 
