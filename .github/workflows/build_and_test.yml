@@ -23,7 +23,7 @@ jobs:
 
     defaults:
       run:
-        shell: pwsh
+        shell: bash
 
     runs-on: ${{matrix.platform}}
 
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Setup Boost environment
-        run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
+        run: echo "BOOST_ROOT=$BOOST_ROOT_1_72_0" >> $GITHUB_ENV
         if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
 
       - name: Setup Boost using Homebrew
@@ -50,7 +50,7 @@ jobs:
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
         env:
           BUILD_TYPE: ${{matrix.build_type}}
-        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$Env:BUILD_TYPE
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
       - name: Build
         working-directory: ${{github.workspace}}/${{env.BUILD_DIRECTORY}}
@@ -58,8 +58,8 @@ jobs:
 
       - name: Test
         working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-        run: ./MemoryTest$Env:EXECUTABLE_SUFFIX
+        run: ./MemoryTest$EXECUTABLE_SUFFIX
 
       - name: Run benchmarks
         working-directory: ${{github.workspace}}/${{env.RUNTIME_DIRECTORY}}
-        run: ./MemoryPoolBenchmark$Env:EXECUTABLE_SUFFIX
+        run: ./MemoryPoolBenchmark$EXECUTABLE_SUFFIX
