@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Setup Boost environment
-        run: $Env:BOOST_ROOT="$Env:BOOST_ROOT_1_72_0"
+        run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
         if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
 
       - name: Setup Boost using Homebrew
