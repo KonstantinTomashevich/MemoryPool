@@ -4,8 +4,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 project (MemoryPool)
 
-# Only for comparison with Boost.Pool.
-find_package (Boost COMPONENTS headers REQUIRED)
+message (STATUS "DEBUG BOOST ROOT: $ENV{BOOST_ROOT}")
 
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Bin")
 
