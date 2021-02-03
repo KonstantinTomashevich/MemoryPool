@@ -1,4 +1,4 @@
-name: CMake
+name: Build And Test
 
 on:
   push:
@@ -9,13 +9,14 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: [windows-latest, ubuntu-latest, macos-latest]
-    
+  build_and_test:
     strategy:
       matrix:
         build_type: [Release, Debug]
+        platform: [ ubuntu-latest, macos-latest, windows-latest ]
 
+    runs-on: ${{ matrix.platform }}
+    
     steps:
     - uses: actions/checkout@v2
 
