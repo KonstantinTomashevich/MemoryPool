@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        build_type: [ Release, Debug ]
+        # TODO: Add compilers to matrix.
+        platform: [ windows-latest, ubuntu-latest, macos-latest ]
+
+    defaults:
+      run:
+        shell: pwsh
+
+    env:
+      BUILD_DIRECTORY: ${{github.workspace}}/Build
+      # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
+      RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
+      BUILD_TYPE: ${{matrix.build_type}}
+
+    runs-on: ${{matrix.platform}}
+    steps:
+      # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
+      # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
+      - name: Setup Boost environment
+        if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
+        run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
+
+      # There is no Boost on macos image, therefore it must be installed manually.
+      - name: Setup Boost using Homebrew
+        if: matrix.platform == 'macos-latest'
+        run: brew install boost
+
+      # Pass windows-specific executable suffix to environment.
+      - name: Setup Windows-specific environment
+        if: matrix.platform == 'windows-latest'
+        run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{env.BUILD_DIRECTORY}}
+
+      - name: Configure CMake
+        working-directory: ${{env.BUILD_DIRECTORY}}
+        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build
+        working-directory: ${{env.BUILD_DIRECTORY}}
+        run: cmake --build .
+
+      - name: Test
+        working-directory: ${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryTest${{env.EXECUTABLE_SUFFIX}}
+
+      # For now, benchmarks are executed only to check that they do not crash.
+      - name: Run benchmarks
+        working-directory: ${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryPoolBenchmark${{env.EXECUTABLE_SUFFIX}}
