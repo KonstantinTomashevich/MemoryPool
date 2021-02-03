@@ -13,7 +13,8 @@ jobs:
     strategy:
       matrix:
         build_type: [Release, Debug]
-        platform: [ windows-latest, ubuntu-latest, macos-latest ]
+        # TODO: Add windows-latest
+        platform: [ ubuntu-latest, macos-latest ]
 
     runs-on: ${{ matrix.platform }}
     
@@ -29,6 +30,8 @@ jobs:
       if: matrix.platform != 'windows-latest'
           
     - uses: actions/checkout@v2
+      with:
+        submodules: true
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -45,3 +48,4 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build .
+    # TODO: Add tests and benchmark execution.
