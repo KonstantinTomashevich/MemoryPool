@@ -66,16 +66,19 @@ jobs:
       # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
       - name: Build Boost 1.72 for Windows Clang
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        working-directory: ${{github.workspace}}
         run: |
-          $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip'
-          Invoke-WebRequest $BOOST_DIST -OutFile boost_1_71_0.zip
-          Expand-Archive -Path boost_1_71_0.zip -DestinationPath $PWD
+          $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip'
+          Invoke-WebRequest $BOOST_DIST -OutFile boost_1_72_0.zip
+          Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
 
-          cd boost_1_71_0
+          cd boost_1_72_0
           $VC_CONFIG = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
-          $B2_COMMAND = 'b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64'
+          $B2_COMMAND = 'b2 install --with-test --with-headers --prefix=sdk toolset=clang-win address-model=64'
           cmd /c "call $VC_CONFIG && bootstrap.bat && $B2_COMMAND"
-          echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -DBoost_DIR=$PWD/boost-build/lib/cmake/Boost-1.72.0" >> $Env:GITHUB_ENV
+          echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -DBoost_DIR=$PWD\sdk\lib\cmake\Boost-1.72.0" >> $Env:GITHUB_ENV
+
+          tree $PWD\sdk\lib
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
