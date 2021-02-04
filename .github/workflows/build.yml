@@ -38,11 +38,15 @@ jobs:
       # "Setup * toolchain" tasks pass CC and CXX variables values to environment.
       - name: Setup GCC toolchain
         if: matrix.toolchain == 'GCC'
-        run: echo "CC=gcc" >> $Env:GITHUB_ENV && echo "CXX=g++" >> $Env:GITHUB_ENV
+        run: echo "CC=gcc-10" >> $Env:GITHUB_ENV && echo "CXX=g++-10" >> $Env:GITHUB_ENV
 
-      - name: Setup Clang toolchain
-        if: matrix.toolchain == 'Clang'
+      - name: Setup Clang toolchain on Unix
+        if: matrix.toolchain == 'Clang' && matrix.os != 'windows-latest'
         run: echo "CC=clang" >> $Env:GITHUB_ENV && echo "CXX=clang++" >> $Env:GITHUB_ENV
+
+      - name: Setup Clang toolchain on Windows
+        if: matrix.toolchain == 'Clang' && matrix.os == 'windows-latest'
+        run: echo "CC=clang-cl" >> $Env:GITHUB_ENV && echo "CXX=clang-cl" >> $Env:GITHUB_ENV
 
       - name: Setup MSVC toolchain
         if: matrix.toolchain == 'MSVC'
