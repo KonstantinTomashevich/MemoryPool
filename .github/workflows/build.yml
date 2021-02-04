@@ -40,6 +40,11 @@ jobs:
 
     runs-on: ${{matrix.os}}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
       # "Setup * toolchain" tasks pass CC and CXX variables values to environment.
       - name: Setup GCC toolchain
         if: matrix.toolchain == 'GCC'
@@ -89,11 +94,6 @@ jobs:
       - name: Setup Windows-specific environment
         if: matrix.os == 'windows-latest'
         run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
-
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: true
 
       - name: Create build directory
         run: ls && cmake -E make_directory ${{env.BUILD_DIRECTORY}} && ls
