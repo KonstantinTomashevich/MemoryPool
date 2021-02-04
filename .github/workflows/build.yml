@@ -100,7 +100,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{env.BOOST_ROOT}}
-          key: windows_boost_1_${{CUSTOM_BOOST_VERSION_MINOR}}_0_clang_cache
+          key: windows_boost_1_${{env.CUSTOM_BOOST_VERSION_MINOR}}_0_clang_cache
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
