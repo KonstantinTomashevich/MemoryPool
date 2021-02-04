@@ -18,6 +18,9 @@ jobs:
         exclude:
           - os: ubuntu-latest
             toolchain: MSVC
+          # TODO: Temporary, because of strange link error.
+          - os: macos-latest
+            toolchain: GCC
           - os: macos-latest
             toolchain: MSVC
           - os: windows-latest
