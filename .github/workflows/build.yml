@@ -40,7 +40,7 @@ jobs:
 
       # Boost minor version, which will be used in cases when Boost must be installed manually.
       CUSTOM_BOOST_VERSION_MINOR: 72
-      BOOST_SOURCE_FILE_NAME: boost_1_${{env.CUSTOM_BOOST_VERSION_MINOR}}_0
+      BOOST_SOURCE_FILE_NAME: boost_1_72_0
 
     runs-on: ${{matrix.os}}
     steps:
