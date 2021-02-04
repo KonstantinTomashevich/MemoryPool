@@ -70,10 +70,8 @@ jobs:
           $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip'
           Invoke-WebRequest $BOOST_DIST -OutFile boost_1_72_0.zip
           Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
-          cd boost_1_72_0
-          ./bootstrap.bat
-          echo 'Bootstrap log:' && Get-Content -Path bootstrap.log
-          ./b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64
+
+          cmd /c 'cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build" && vcvarsall.bat amd64 && cd "${{github.workspace}}" && cd boost_1_72_0 && bootstrap.bat && b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64'
           echo "BOOST_ROOT=$PWD/boost-build" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
