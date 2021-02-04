@@ -64,7 +64,8 @@ jobs:
       - name: Build Boost for Windows Clang
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
         run: |
-          wget -q https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip
+          $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip'
+          Invoke-WebRequest $BOOST_DIST -OutFile boost_1_72_0.zip
           Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
           cd boost_1_72_0
           ./bootstrap.bat toolset=clang-win
