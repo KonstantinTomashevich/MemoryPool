@@ -79,7 +79,7 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} $Env:OVERRIDE_GENERATOR
+        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OVERRIDE_GENERATOR}}
 
       - name: Build
         working-directory: ${{env.BUILD_DIRECTORY}}
