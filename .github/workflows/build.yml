@@ -96,11 +96,14 @@ jobs:
       - name: Create build directory
         run: cmake -E make_directory ${{env.BUILD_DIRECTORY}}
 
+      - name: Temp
+        if: matrix.os == 'windows-latest'
+        working-directory: ${{env.BUILD_DIRECTORY}}
+        run: tree $Env:BOOST_ROOT /F /A
+
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: |
-          tree $Env:BOOST_ROOT /F /A
-          cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}
+        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build
         working-directory: ${{env.BUILD_DIRECTORY}}
