@@ -37,6 +37,8 @@ jobs:
       # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
       RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
+      # Boost minor version, which will be used in cases when Boost must be installed manually.
+      CUSTOM_BOOST_VERSION_MINOR: 72
 
     runs-on: ${{matrix.os}}
     steps:
@@ -71,20 +73,35 @@ jobs:
 
       # There is no Clang binaries in default Windows Boost installation and their no such
       # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
-      - name: Build Boost 1.72 for Windows Clang
+      - name: Build Boost for Windows Clang
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
         working-directory: ${{github.workspace}}
         run: |
-          $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip'
-          Invoke-WebRequest $BOOST_DIST -OutFile boost_1_72_0.zip
-          Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
+          $BOOST_SRC_NAME = 'boost_1_${{env.CUSTOM_BOOST_VERSION_MINOR}}_0'
 
-          cd boost_1_72_0
-          $VC_CONFIGURATION_SCRIPT =
-            '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
-          $B2_COMMAND = 'b2 toolset=clang-win address-model=64 --with-test --with-headers install --prefix=.'
-          cmd /c "call $VC_CONFIGURATION_SCRIPT && bootstrap.bat && $B2_COMMAND"
-          echo "BOOST_ROOT=$PWD" >> $Env:GITHUB_ENV
+          if(!(Test-Path -path $BOOST_SRC_NAME))
+          {
+            $BOOST_SRC_ARCHIVE = ${{CUSTOM_BOOST_VERSION_MINOR}}
+            $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.${{env.CUSTOM_BOOST_VERSION_MINOR}}.0/' +
+                          "source/${BOOST_SRC_NAME}.zip"
+            Invoke-WebRequest $BOOST_DIST -OutFile "${BOOST_SRC_NAME}.zip"
+            Expand-Archive -Path "${BOOST_SRC_NAME}.zip" -DestinationPath $PWD
+
+            cd ${BOOST_SRC_NAME}
+            $VC_CONFIGURATION_SCRIPT =
+              '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
+            $B2_COMMAND = 'b2 toolset=clang-win address-model=64 --with-test --with-headers install --prefix=.'
+            cmd /c "call $VC_CONFIGURATION_SCRIPT && bootstrap.bat && $B2_COMMAND"
+          }
+
+          echo "BOOST_ROOT=$PWD\${BOOST_SRC_NAME}" >> $Env:GITHUB_ENV
+
+      - name: Cache Windows Clang Boost installation
+        if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        uses: actions/cache@v2
+        with:
+          path: ${{env.BOOST_ROOT}}
+          key: windows_boost_1_${{CUSTOM_BOOST_VERSION_MINOR}}_0_clang_cache
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
