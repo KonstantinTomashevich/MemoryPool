@@ -56,8 +56,20 @@ jobs:
       # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
       # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
       - name: Setup Boost environment
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
+        if: (matrix.os == 'windows-latest' && matrix.toolchain != 'Clang') || matrix.os == 'ubuntu-latest'
         run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
+
+      # There is no Clang binaries in default Windows Boost installation and their no such
+      # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
+      - name: Build Boost for Windows Clang
+        if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        run: |
+          wget -q https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip
+          Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
+          cd boost_1_72_0
+          ./bootstrap.bat toolset=clang-win
+          ./b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win
+          echo "BOOST_ROOT=$PWD/boost-build" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
