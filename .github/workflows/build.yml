@@ -78,7 +78,7 @@ jobs:
           cmd /c "call $VC_CONFIG && bootstrap.bat && $B2_COMMAND"
           echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -DBoost_DIR=$PWD\sdk\lib\cmake\Boost-1.72.0" >> $Env:GITHUB_ENV
 
-          tree $PWD\sdk\lib
+          tree $PWD\sdk\lib /F /A
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
