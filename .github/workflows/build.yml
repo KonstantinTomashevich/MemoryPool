@@ -35,6 +35,7 @@ jobs:
       # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
       RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
+      APPEND_CMAKE_PARAMETERS: ''
 
     runs-on: ${{matrix.os}}
     steps:
