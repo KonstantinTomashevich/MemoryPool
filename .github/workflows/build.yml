@@ -13,16 +13,15 @@ jobs:
     strategy:
       matrix:
         build_type: [ Release, Debug ]
-        include:
-          - os: [ ubuntu-latest, macos-latest ]
-            c_compiler: gcc
-            cxx_compiler: g++
-          - os: [ windows-latest, ubuntu-latest, macos-latest ]
-            c_compiler: clang
-            cxx_compiler: clang++
-          - os: [ windows-latest ]
-            c_compiler: cl
-            cxx_compiler: cl
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        toolchain: [ GCC, Clang, MSVC ]
+        exclude:
+          - os: ubuntu-latest
+            toolchain: MSVC
+          - os: macos-latest
+            toolchain: MSVC
+          - os: windows-latest
+            toolchain: GCC
 
     defaults:
       run:
@@ -33,11 +32,22 @@ jobs:
       # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
       RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
-      CC: ${{matrix.c_compiler}}
-      CXX: ${{matrix.cxx_compiler}}
 
     runs-on: ${{matrix.os}}
     steps:
+      # "Setup * toolchain" tasks pass CC and CXX variables values to environment.
+      - name: Setup GCC toolchain
+        if: matrix.toolchain == 'GCC'
+        run: echo "CC=gcc" >> $Env:GITHUB_ENV && echo "CXX=g++" >> $Env:GITHUB_ENV
+
+      - name: Setup Clang toolchain
+        if: matrix.toolchain == 'Clang'
+        run: echo "CC=clang" >> $Env:GITHUB_ENV && echo "CXX=clang++" >> $Env:GITHUB_ENV
+
+      - name: Setup MSVC toolchain
+        if: matrix.toolchain == 'MSVC'
+        run: echo "CC=cl" >> $Env:GITHUB_ENV && echo "CXX=cl" >> $Env:GITHUB_ENV
+
       # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
       # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
       - name: Setup Boost environment
