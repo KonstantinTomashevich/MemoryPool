@@ -81,7 +81,6 @@ jobs:
 
           if(!(Test-Path -path $BOOST_SRC_NAME))
           {
-            $BOOST_SRC_ARCHIVE = ${{CUSTOM_BOOST_VERSION_MINOR}}
             $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.${{env.CUSTOM_BOOST_VERSION_MINOR}}.0/' +
                           "source/${BOOST_SRC_NAME}.zip"
             Invoke-WebRequest $BOOST_DIST -OutFile "${BOOST_SRC_NAME}.zip"
