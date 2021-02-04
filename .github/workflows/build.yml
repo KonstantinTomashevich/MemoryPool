@@ -13,14 +13,14 @@ jobs:
     strategy:
       matrix:
         build_type: [ Release, Debug ]
-        # TODO: Add compilers to matrix.
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
         include:
-          - c_compiler: gcc
+          - os: [ ubuntu-latest, macos-latest ]
+            c_compiler: gcc
             cxx_compiler: g++
-          - c_compiler: clang
+          - os: [ windows-latest, ubuntu-latest, macos-latest ]
+            c_compiler: clang
             cxx_compiler: clang++
-          - os: windows-latest
+          - os: [ windows-latest ]
             c_compiler: cl
             cxx_compiler: cl
 
