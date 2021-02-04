@@ -14,7 +14,15 @@ jobs:
       matrix:
         build_type: [ Release, Debug ]
         # TODO: Add compilers to matrix.
-        platform: [ windows-latest, ubuntu-latest, macos-latest ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        include:
+          - c_compiler: gcc
+            cxx_compiler: g++
+          - c_compiler: clang
+            cxx_compiler: clang++
+          - os: windows-latest
+            c_compiler: cl
+            cxx_compiler: cl
 
     defaults:
       run:
@@ -25,23 +33,25 @@ jobs:
       # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
       RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
+      CC: ${{matrix.c_compiler}}
+      CXX: ${{matrix.cxx_compiler}}
 
-    runs-on: ${{matrix.platform}}
+    runs-on: ${{matrix.os}}
     steps:
       # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
       # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
       - name: Setup Boost environment
-        if: matrix.platform == 'windows-latest' || matrix.platform == 'ubuntu-latest'
+        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
-        if: matrix.platform == 'macos-latest'
+        if: matrix.os == 'macos-latest'
         run: brew install boost
 
       # Pass windows-specific executable suffix to environment.
       - name: Setup Windows-specific environment
-        if: matrix.platform == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
 
       - name: Checkout
