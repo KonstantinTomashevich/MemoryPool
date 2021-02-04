@@ -98,7 +98,9 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: (cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}) -or (Get-Content CMakeFiles/CMakeError.log)
+        run: |
+          tree $Env:BOOST_ROOT /F /A
+          cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build
         working-directory: ${{env.BUILD_DIRECTORY}}
