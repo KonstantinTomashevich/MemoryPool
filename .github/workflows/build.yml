@@ -50,7 +50,7 @@ jobs:
       # Clang on Windows should be specified using -T instead of CC/CXX.
       - name: Setup Clang toolchain on Windows
         if: matrix.toolchain == 'Clang' && matrix.os == 'windows-latest'
-        run: echo 'OVERRIDE_TOOLCHAIN=-T clangcl' >> $Env:GITHUB_ENV
+        run: echo 'APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -T clangcl' >> $Env:GITHUB_ENV
 
       - name: Setup MSVC toolchain
         if: matrix.toolchain == 'MSVC'
@@ -75,7 +75,7 @@ jobs:
           $VC_CONFIG = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
           $B2_COMMAND = 'b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64'
           cmd /c "call $VC_CONFIG && bootstrap.bat && $B2_COMMAND"
-          echo "Boost_DIR=$PWD/boost-build/lib/cmake/Boost-1.72.0" >> $Env:GITHUB_ENV
+          echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -DBoost_DIR=$PWD/boost-build/lib/cmake/Boost-1.72.0" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
@@ -97,7 +97,7 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OVERRIDE_TOOLCHAIN}}
+        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build
         working-directory: ${{env.BUILD_DIRECTORY}}
