@@ -64,15 +64,22 @@ jobs:
 
       # There is no Clang binaries in default Windows Boost installation and their no such
       # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
-      - name: Build Boost for Windows Clang
+      - name: Download Boost 1.72 sources
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
         run: |
           $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.zip'
           Invoke-WebRequest $BOOST_DIST -OutFile boost_1_72_0.zip
           Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
 
-          cmd /c 'cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build" && vcvarsall.bat amd64 && cd "${{github.workspace}}" && cd boost_1_72_0 && bootstrap.bat && b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64'
-          echo "BOOST_ROOT=$PWD/boost-build" >> $Env:GITHUB_ENV
+      - name: Build Boost 1.72 for Windows Clang
+        if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        shell: cmd
+        working-directory: ${{github.workspace}}/boost_1_72_0
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          bootstrap.bat
+          b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64
+          echo BOOST_ROOT=%cd%\boost-build >> %GITHUB_ENV%
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
