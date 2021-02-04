@@ -76,12 +76,12 @@ jobs:
         shell: cmd
         working-directory: ${{github.workspace}}/boost_1_72_0
         run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" &&
-          echo Bootstraping... &&
-          bootstrap.bat &&
-          echo Building... &&
-          b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64 &&
-          echo Updating environment... &&
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          echo Bootstraping...
+          bootstrap.bat
+          echo Building...
+          b2 install --with-test --with-headers --prefix=boost-build toolset=clang-win address-model=64
+          echo Updating environment...
           echo Boost_DIR=%cd%\boost-build\lib\cmake\Boost-1.72.0 >> %GITHUB_ENV%
 
       # There is no Boost on macos image, therefore it must be installed manually.
