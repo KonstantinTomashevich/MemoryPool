@@ -76,9 +76,7 @@ jobs:
           $VC_CONFIG = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
           $B2_COMMAND = 'b2 install --with-test --with-headers --prefix=sdk toolset=clang-win address-model=64'
           cmd /c "call $VC_CONFIG && bootstrap.bat && $B2_COMMAND"
-          echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -DBoost_DIR=$PWD\sdk\lib\cmake\Boost-1.72.0" >> $Env:GITHUB_ENV
-
-          tree $PWD\sdk\lib /F /A
+          echo "BOOST_ROOT=$PWD\sdk" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
