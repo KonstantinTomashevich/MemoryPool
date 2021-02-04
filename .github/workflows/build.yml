@@ -86,14 +86,14 @@ jobs:
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
         working-directory: ${{github.workspace}}
         run: |
-          if (!(Test-Path -path $BOOST_SOURCE_FILE_NAME))
+          if (!(Test-Path -path ${{env.BOOST_SOURCE_FILE_NAME}}))
           {
             $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.${{env.CUSTOM_BOOST_VERSION_MINOR}}.0/' +
-                          "source/${BOOST_SOURCE_FILE_NAME}.zip"
-            Invoke-WebRequest $BOOST_DIST -OutFile "${BOOST_SOURCE_FILE_NAME}.zip"
-            Expand-Archive -Path "${BOOST_SOURCE_FILE_NAME}.zip" -DestinationPath $PWD
+                          "source/${{env.BOOST_SOURCE_FILE_NAME}}.zip"
+            Invoke-WebRequest $BOOST_DIST -OutFile "${{env.BOOST_SOURCE_FILE_NAME}}.zip"
+            Expand-Archive -Path "${{env.BOOST_SOURCE_FILE_NAME}}.zip" -DestinationPath $PWD
 
-            cd ${BOOST_SOURCE_FILE_NAME}
+            cd ${{env.BOOST_SOURCE_FILE_NAME}}
             $VC_CONFIGURATION_SCRIPT =
               '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
             $B2_COMMAND = 'b2 toolset=clang-win address-model=64 --with-test --with-headers install --prefix=.'
@@ -101,7 +101,7 @@ jobs:
             cd ..
           }
 
-          echo "BOOST_ROOT=$PWD\${BOOST_SOURCE_FILE_NAME}" >> $Env:GITHUB_ENV
+          echo "BOOST_ROOT=$PWD\${{env.BOOST_SOURCE_FILE_NAME}}" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
       - name: Setup Boost using Homebrew
