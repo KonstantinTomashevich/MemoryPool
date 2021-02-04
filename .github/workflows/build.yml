@@ -13,8 +13,10 @@ jobs:
     strategy:
       matrix:
         build_type: [ Release, Debug ]
-        os: [ windows-latest, ubuntu-latest, macos-latest ]
-        toolchain: [ GCC, Clang, MSVC ]
+        #os: [ windows-latest, ubuntu-latest, macos-latest ]
+        #toolchain: [ GCC, Clang, MSVC ]
+        os: [ windows-latest ]
+        toolchain: [ Clang ]
         exclude:
           - os: ubuntu-latest
             toolchain: MSVC
@@ -94,7 +96,7 @@ jobs:
           submodules: true
 
       - name: Create build directory
-        run: cmake -E make_directory ${{env.BUILD_DIRECTORY}}
+        run: ls && cmake -E make_directory ${{env.BUILD_DIRECTORY}} && ls
 
       - name: Temp
         if: matrix.os == 'windows-latest'
