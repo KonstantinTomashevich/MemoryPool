@@ -15,14 +15,11 @@ jobs:
         build_type: [ Release, Debug ]
         #os: [ windows-latest, ubuntu-latest, macos-latest ]
         #toolchain: [ GCC, Clang, MSVC ]
-        os: [ windows-latest ]
-        toolchain: [ Clang ]
+        os: [ macos-latest  ]
+        toolchain: [ GCC ]
         exclude:
           - os: ubuntu-latest
             toolchain: MSVC
-          # TODO: Temporary, because of strange link error.
-          - os: macos-latest
-            toolchain: GCC
           - os: macos-latest
             toolchain: MSVC
           - os: windows-latest
