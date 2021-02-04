@@ -80,9 +80,10 @@ jobs:
           Expand-Archive -Path boost_1_72_0.zip -DestinationPath $PWD
 
           cd boost_1_72_0
-          $VC_CONFIG = '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
+          $VC_CONFIGURATION_SCRIPT =
+            '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
           $B2_COMMAND = 'b2 toolset=clang-win address-model=64 --with-test --with-headers install --prefix=.'
-          cmd /c "call $VC_CONFIG && bootstrap.bat && $B2_COMMAND"
+          cmd /c "call $VC_CONFIGURATION_SCRIPT && bootstrap.bat && $B2_COMMAND"
           echo "BOOST_ROOT=$PWD" >> $Env:GITHUB_ENV
 
       # There is no Boost on macos image, therefore it must be installed manually.
@@ -96,12 +97,7 @@ jobs:
         run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
 
       - name: Create build directory
-        run: ls && cmake -E make_directory ${{env.BUILD_DIRECTORY}} && ls
-
-      - name: Temp
-        if: matrix.os == 'windows-latest'
-        working-directory: ${{env.BUILD_DIRECTORY}}
-        run: tree $Env:BOOST_ROOT /F /A
+        run: cmake -E make_directory ${{env.BUILD_DIRECTORY}}
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
