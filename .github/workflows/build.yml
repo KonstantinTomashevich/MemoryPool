@@ -47,7 +47,7 @@ jobs:
       # Clang on Windows should be specified using -T instead of CC/CXX.
       - name: Setup Clang toolchain on Windows
         if: matrix.toolchain == 'Clang' && matrix.os == 'windows-latest'
-        run: echo "TOOLCHAIN_ARGUMENTS=-T LLVM_v142" >> $Env:GITHUB_ENV
+        run: echo "TOOLCHAIN_ARGUMENTS=-T clang-cl" >> $Env:GITHUB_ENV
 
       - name: Setup MSVC toolchain
         if: matrix.toolchain == 'MSVC'
