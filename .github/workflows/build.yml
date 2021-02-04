@@ -38,20 +38,20 @@ jobs:
       # "Setup * toolchain" tasks pass CC and CXX variables values to environment.
       - name: Setup GCC toolchain
         if: matrix.toolchain == 'GCC'
-        run: echo "CC=gcc-10" >> $Env:GITHUB_ENV && echo "CXX=g++-10" >> $Env:GITHUB_ENV
+        run: echo 'CC=gcc-10' >> $Env:GITHUB_ENV && echo 'CXX=g++-10' >> $Env:GITHUB_ENV
 
       - name: Setup Clang toolchain on Unix
         if: matrix.toolchain == 'Clang' && matrix.os != 'windows-latest'
-        run: echo "CC=clang" >> $Env:GITHUB_ENV && echo "CXX=clang++" >> $Env:GITHUB_ENV
+        run: echo 'CC=clang' >> $Env:GITHUB_ENV && echo 'CXX=clang++' >> $Env:GITHUB_ENV
 
       # Clang on Windows should be specified using -T instead of CC/CXX.
       - name: Setup Clang toolchain on Windows
         if: matrix.toolchain == 'Clang' && matrix.os == 'windows-latest'
-        run: echo "CC=clang" >> $Env:GITHUB_ENV && echo "CXX=clang++" >> $Env:GITHUB_ENV && echo "OVERRIDE_GENERATOR=-G \"NMake Makefiles\"" >> $Env:GITHUB_ENV
+        run: echo 'CC=clang' >> $Env:GITHUB_ENV && echo 'CXX=clang++' >> $Env:GITHUB_ENV && echo 'OVERRIDE_GENERATOR=-G "NMake Makefiles"' >> $Env:GITHUB_ENV
 
       - name: Setup MSVC toolchain
         if: matrix.toolchain == 'MSVC'
-        run: echo "CC=cl" >> $Env:GITHUB_ENV && echo "CXX=cl" >> $Env:GITHUB_ENV
+        run: echo 'CC=cl' >> $Env:GITHUB_ENV && echo 'CXX=cl' >> $Env:GITHUB_ENV
 
       # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
       # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
