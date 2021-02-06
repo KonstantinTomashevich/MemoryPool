@@ -43,6 +43,9 @@ private:
 };
 
 template <typename Entry>
+using PoolEntryOperation = void (*) (Entry *) noexcept;
+
+template <typename Entry>
 void EntryDefaultConstructor (Entry *entry) noexcept;
 
 template <typename Entry>
@@ -50,16 +53,17 @@ void EntryDefaultDestructor (Entry *entry) noexcept;
 
 template <
     typename Entry,
-    void (*Constructor) (Entry *) noexcept = EntryDefaultConstructor,
-    void (*Destructor) (Entry *) noexcept = EntryDefaultDestructor>
+    PoolEntryOperation <Entry> Constructor = EntryDefaultConstructor,
+    PoolEntryOperation <Entry> Destructor = EntryDefaultDestructor>
 class TypedUnorderedPool
 {
     static_assert (sizeof (Entry) >= sizeof (uintptr_t),
                    "Entry type size must be at equal or greater than pointer size!");
 
     static_assert (!std::is_trivial_v <Entry> ||
-                   Constructor != EntryDefaultConstructor <Entry> ||
-                   Destructor != EntryDefaultDestructor <Entry>,
+                   // Cast is required because of bug in some GCC versions, which forbids such equality checks.
+                   Constructor != static_cast <PoolEntryOperation <Entry>> (EntryDefaultConstructor <Entry>) ||
+                   Destructor != static_cast <PoolEntryOperation <Entry>> (EntryDefaultDestructor <Entry>),
                    "There is no practical sense in using trivial type with default constructor "
                    "and destructor, consider using TypedUnorderedTrivialPool instead.");
 
@@ -165,26 +169,26 @@ SizeType TypedUnorderedTrivialPool <Entry>::GetPageCapacity () const
     return fields_.pageCapacity_;
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 TypedUnorderedPool <Entry, Constructor, Destructor>::TypedUnorderedPool (SizeType pageCapacity) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity}
 {
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 TypedUnorderedPool <Entry, Constructor, Destructor>::TypedUnorderedPool (TypedUnorderedPool &&other) noexcept
     : fields_ (other.fields_)
 {
     other.fields_ = BasePoolFields::ForEmptyPool (fields_.pageCapacity_);
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 TypedUnorderedPool <Entry, Constructor, Destructor>::~TypedUnorderedPool () noexcept
 {
     Clean ();
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 Entry *TypedUnorderedPool <Entry, Constructor, Destructor>::Acquire () noexcept
 {
     auto *entry = reinterpret_cast <Entry *> (PoolDetail::Acquire (fields_, sizeof (Entry)));
@@ -193,7 +197,7 @@ Entry *TypedUnorderedPool <Entry, Constructor, Destructor>::Acquire () noexcept
     return entry;
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 void TypedUnorderedPool <Entry, Constructor, Destructor>::Free (Entry *entry) noexcept
 {
     assert (entry);
@@ -202,13 +206,13 @@ void TypedUnorderedPool <Entry, Constructor, Destructor>::Free (Entry *entry) no
     PoolDetail::Free (fields_, entry, sizeof (Entry));
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 void TypedUnorderedPool <Entry, Constructor, Destructor>::Shrink () noexcept
 {
     PoolDetail::Shrink (fields_, sizeof (Entry));
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 void TypedUnorderedPool <Entry, Constructor, Destructor>::Clean () noexcept
 {
     PoolDetail::NonTrivialClean (
@@ -219,13 +223,13 @@ void TypedUnorderedPool <Entry, Constructor, Destructor>::Clean () noexcept
         });
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 SizeType TypedUnorderedPool <Entry, Constructor, Destructor>::GetPageCount () const
 {
     return fields_.pageCount_;
 }
 
-template <typename Entry, void (*Constructor) (Entry *) noexcept, void (*Destructor) (Entry *) noexcept>
+template <typename Entry, PoolEntryOperation <Entry> Constructor, PoolEntryOperation <Entry> Destructor>
 SizeType TypedUnorderedPool <Entry, Constructor, Destructor>::GetPageCapacity () const
 {
     return fields_.pageCapacity_;

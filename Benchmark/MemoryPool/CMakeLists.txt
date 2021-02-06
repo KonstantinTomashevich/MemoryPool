@@ -1,6 +1,8 @@
 file (GLOB_RECURSE SOURCES *.cpp)
 file (GLOB_RECURSE HEADERS *.hpp)
 
+find_package (Boost COMPONENTS headers REQUIRED)
+
 set (TARGET MemoryPoolBenchmark)
 add_executable (${TARGET} ${SOURCES} ${HEADERS})
 target_link_libraries (${TARGET} benchmark Memory Boost::headers)

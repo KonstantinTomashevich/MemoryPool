@@ -1,0 +1,132 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        build_type: [ Release, Debug ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        toolchain: [ GCC, Clang, MSVC ]
+        exclude:
+          - os: ubuntu-latest
+            toolchain: MSVC
+          - os: macos-latest
+            toolchain: MSVC
+          - os: windows-latest
+            toolchain: GCC
+
+    defaults:
+      run:
+        shell: pwsh
+
+    env:
+      BUILD_DIRECTORY: ${{github.workspace}}/Build
+      RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
+      BUILD_TYPE: ${{matrix.build_type}}
+
+      # Boost minor version, which will be used in cases when Boost must be installed manually.
+      CUSTOM_BOOST_VERSION_MINOR: 72
+      BOOST_SOURCE_FILE_NAME: boost_1_72_0
+
+    runs-on: ${{matrix.os}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      # "Setup * toolchain" tasks pass CC and CXX variables values to environment.
+      - name: Setup GCC toolchain
+        if: matrix.toolchain == 'GCC'
+        run: echo 'CC=gcc' >> $Env:GITHUB_ENV && echo 'CXX=g++' >> $Env:GITHUB_ENV
+
+      - name: Setup Clang toolchain on Unix
+        if: matrix.toolchain == 'Clang' && matrix.os != 'windows-latest'
+        run: echo 'CC=clang' >> $Env:GITHUB_ENV && echo 'CXX=clang++' >> $Env:GITHUB_ENV
+
+      # Clang on Windows should be specified using -T instead of CC/CXX.
+      - name: Setup Clang toolchain on Windows
+        if: matrix.toolchain == 'Clang' && matrix.os == 'windows-latest'
+        run: echo "APPEND_CMAKE_PARAMETERS=$Env:APPEND_CMAKE_PARAMETERS -T clangcl" >> $Env:GITHUB_ENV
+
+      - name: Setup MSVC toolchain
+        if: matrix.toolchain == 'MSVC'
+        run: echo 'CC=cl' >> $Env:GITHUB_ENV && echo 'CXX=cl' >> $Env:GITHUB_ENV
+
+      # On windows and ubuntu images Boost 1.72 is preinstalled, but it's path must be passed
+      # to BOOST_ROOT environment variable from BOOST_ROOT_1_72_0 environment variable.
+      - name: Setup Boost environment
+        if: (matrix.os == 'windows-latest' && matrix.toolchain != 'Clang') || matrix.os == 'ubuntu-latest'
+        run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
+
+      # There is no Clang binaries in default Windows Boost installation and there is no such
+      # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
+      - name: Cache Windows Clang Boost installation
+        if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        uses: actions/cache@v2
+        with:
+          path: ${{github.workspace}}\${{env.BOOST_SOURCE_FILE_NAME}}
+          key: windows_boost_1_${{env.CUSTOM_BOOST_VERSION_MINOR}}_0_clang_cache
+
+      # Installs Boost from sources if it there is no binaries in cache.
+      - name: Install Boost for Windows Clang
+        if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
+        working-directory: ${{github.workspace}}
+        run: |
+          if (!(Test-Path -path ${{env.BOOST_SOURCE_FILE_NAME}}))
+          {
+            $BOOST_DIST = 'https://dl.bintray.com/boostorg/release/1.${{env.CUSTOM_BOOST_VERSION_MINOR}}.0/' +
+                          "source/${{env.BOOST_SOURCE_FILE_NAME}}.zip"
+            Invoke-WebRequest $BOOST_DIST -OutFile "${{env.BOOST_SOURCE_FILE_NAME}}.zip"
+            Expand-Archive -Path "${{env.BOOST_SOURCE_FILE_NAME}}.zip" -DestinationPath $PWD
+
+            cd ${{env.BOOST_SOURCE_FILE_NAME}}
+            $VC_CONFIGURATION_SCRIPT =
+              '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
+            $B2_COMMAND = 'b2 toolset=clang-win address-model=64 --with-test --with-headers install --prefix=.'
+            cmd /c "call $VC_CONFIGURATION_SCRIPT && bootstrap.bat && $B2_COMMAND"
+            cd ..
+          }
+
+          echo "BOOST_ROOT=$PWD\${{env.BOOST_SOURCE_FILE_NAME}}" >> $Env:GITHUB_ENV
+
+      # There is no Boost on macos image, therefore it must be installed manually.
+      - name: Setup Boost using Homebrew
+        if: matrix.os == 'macos-latest'
+        run: brew install boost
+
+      # Pass windows-specific executable suffix to environment.
+      - name: Setup Windows-specific environment
+        if: matrix.os == 'windows-latest'
+        run: echo "EXECUTABLE_SUFFIX=.exe" >> $Env:GITHUB_ENV
+
+      - name: Create build directory
+        run: cmake -E make_directory ${{env.BUILD_DIRECTORY}}
+
+      - name: Configure CMake
+        working-directory: ${{env.BUILD_DIRECTORY}}
+        run: cmake $Env:GITHUB_WORKSPACE
+                   -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+                   -DRUNTIME_OUTPUT_DIRECTORY="${{env.RUNTIME_DIRECTORY}}"
+                   ${{env.APPEND_CMAKE_PARAMETERS}}
+
+      - name: Build
+        working-directory: ${{env.BUILD_DIRECTORY}}
+        run: cmake --build .
+
+      - name: Test
+        working-directory: ${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryTest${{env.EXECUTABLE_SUFFIX}}
+
+      # For now, benchmarks are executed only to check that they do not crash.
+      - name: Run benchmarks
+        working-directory: ${{env.RUNTIME_DIRECTORY}}
+        run: ./MemoryPoolBenchmark${{env.EXECUTABLE_SUFFIX}}

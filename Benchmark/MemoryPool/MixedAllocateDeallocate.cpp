@@ -90,39 +90,39 @@ void MixedAllocateDeallocate (benchmark::State &state)
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    NewDeleteAdapter <Component32b>,
                    NewDeleteAdapter <Component192b>,
-                   NewDeleteAdapter <Component1032b>)->MinTime (15.0);
+                   NewDeleteAdapter <Component1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    NewDeleteAdapter <TrivialComponent32b>,
                    NewDeleteAdapter <TrivialComponent192b>,
-                   NewDeleteAdapter <TrivialComponent1032b>)->MinTime (15.0);
+                   NewDeleteAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    BoostObjectPoolAdapter <Component32b>,
                    BoostObjectPoolAdapter <Component192b>,
-                   BoostObjectPoolAdapter <Component1032b>)->MinTime (15.0);
+                   BoostObjectPoolAdapter <Component1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    BoostObjectPoolAdapter <TrivialComponent32b>,
                    BoostObjectPoolAdapter <TrivialComponent192b>,
-                   BoostObjectPoolAdapter <TrivialComponent1032b>)->MinTime (15.0);
+                   BoostObjectPoolAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    UnorderedPoolAdapter <Component32b>,
                    UnorderedPoolAdapter <Component192b>,
-                   UnorderedPoolAdapter <Component1032b>)->MinTime (15.0);
+                   UnorderedPoolAdapter <Component1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    UnorderedTrivialPoolAdapter <TrivialComponent32b>,
                    UnorderedTrivialPoolAdapter <TrivialComponent192b>,
-                   UnorderedTrivialPoolAdapter <TrivialComponent1032b>)->MinTime (15.0);
+                   UnorderedTrivialPoolAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    TypedUnorderedPoolAdapter <Component32b>,
                    TypedUnorderedPoolAdapter <Component192b>,
-                   TypedUnorderedPoolAdapter <Component1032b>)->MinTime (15.0);
+                   TypedUnorderedPoolAdapter <Component1032b>);
 
 BENCHMARK_TEMPLATE(MixedAllocateDeallocate,
                    TypedUnorderedTrivialPoolAdapter <TrivialComponent32b>,
                    TypedUnorderedTrivialPoolAdapter <TrivialComponent192b>,
-                   TypedUnorderedTrivialPoolAdapter <TrivialComponent1032b>)->MinTime (15.0);
+                   TypedUnorderedTrivialPoolAdapter <TrivialComponent1032b>);
