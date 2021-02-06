@@ -113,9 +113,9 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: cmake $Env:GITHUB_WORKSPACE \
-                   -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-                   -DRUNTIME_OUTPUT_DIRECTORY="${{env.RUNTIME_DIRECTORY}}" \
+        run: cmake $Env:GITHUB_WORKSPACE
+                   -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+                   -DRUNTIME_OUTPUT_DIRECTORY="${{env.RUNTIME_DIRECTORY}}"
                    ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build
