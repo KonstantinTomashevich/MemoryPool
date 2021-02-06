@@ -116,6 +116,8 @@ jobs:
         run: cmake $Env:GITHUB_WORKSPACE
                    -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
                    -DRUNTIME_OUTPUT_DIRECTORY="${{env.RUNTIME_DIRECTORY}}"
+                   -DMEMORY_POOL_TESTS=ON
+                   -DMEMORY_POOL_BENCHMARK=ON
                    ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build

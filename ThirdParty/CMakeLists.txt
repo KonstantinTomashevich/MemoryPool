@@ -1,3 +1,5 @@
-set (BENCHMARK_ENABLE_TESTING FALSE)
-set (BENCHMARK_ENABLE_EXCEPTIONS FALSE)
-add_subdirectory (benchmark)
+if (MEMORY_POOL_BENCHMARK)
+    set (BENCHMARK_ENABLE_TESTING FALSE)
+    set (BENCHMARK_ENABLE_EXCEPTIONS FALSE)
+    add_subdirectory (benchmark)
+endif ()
