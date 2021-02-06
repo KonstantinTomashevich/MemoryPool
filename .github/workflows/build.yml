@@ -29,7 +29,6 @@ jobs:
 
     env:
       BUILD_DIRECTORY: ${{github.workspace}}/Build
-      # TODO: Somehow pass runtime output directory directly from CMake to avoid duplication?
       RUNTIME_DIRECTORY: ${{github.workspace}}/Build/Bin
       BUILD_TYPE: ${{matrix.build_type}}
 
@@ -68,7 +67,7 @@ jobs:
         if: (matrix.os == 'windows-latest' && matrix.toolchain != 'Clang') || matrix.os == 'ubuntu-latest'
         run: echo "BOOST_ROOT=$Env:BOOST_ROOT_1_72_0" >> $Env:GITHUB_ENV
 
-      # There is no Clang binaries in default Windows Boost installation and their no such
+      # There is no Clang binaries in default Windows Boost installation and there is no such
       # binaries in Chocolatey repositories. Therefore Boost for Clang must be installed manually.
       - name: Cache Windows Clang Boost installation
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
@@ -77,7 +76,8 @@ jobs:
           path: ${{github.workspace}}\${{env.BOOST_SOURCE_FILE_NAME}}
           key: windows_boost_1_${{env.CUSTOM_BOOST_VERSION_MINOR}}_0_clang_cache
 
-      - name: Build Boost for Windows Clang
+      # Installs Boost from sources if it there is no binaries in cache.
+      - name: Install Boost for Windows Clang
         if: matrix.os == 'windows-latest' && matrix.toolchain == 'Clang'
         working-directory: ${{github.workspace}}
         run: |
@@ -113,7 +113,10 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{env.BUILD_DIRECTORY}}
-        run: cmake $Env:GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.APPEND_CMAKE_PARAMETERS}}
+        run: cmake $Env:GITHUB_WORKSPACE \
+                   -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                   -DRUNTIME_OUTPUT_DIRECTORY="${{env.RUNTIME_DIRECTORY}}" \
+                   ${{env.APPEND_CMAKE_PARAMETERS}}
 
       - name: Build
         working-directory: ${{env.BUILD_DIRECTORY}}

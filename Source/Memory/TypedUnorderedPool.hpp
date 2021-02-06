@@ -61,6 +61,7 @@ class TypedUnorderedPool
                    "Entry type size must be at equal or greater than pointer size!");
 
     static_assert (!std::is_trivial_v <Entry> ||
+                   // Cast is required because of bug in some GCC versions, which forbids such equality checks.
                    Constructor != static_cast <PoolEntryOperation <Entry>> (EntryDefaultConstructor <Entry>) ||
                    Destructor != static_cast <PoolEntryOperation <Entry>> (EntryDefaultDestructor <Entry>),
                    "There is no practical sense in using trivial type with default constructor "
