@@ -56,8 +56,8 @@ SizeType UnorderedTrivialPool::GetPageCapacity () const
 UnorderedPool::UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
                               Constructor constructor, Destructor destructor) noexcept
     : fields_ {nullptr, nullptr, 0u, pageCapacity, chunkSize},
-      constructor_ (std::move (constructor)),
-      destructor_ (std::move (destructor))
+      constructor_ (constructor),
+      destructor_ (destructor)
 {
     assert (constructor_);
     assert (destructor_);

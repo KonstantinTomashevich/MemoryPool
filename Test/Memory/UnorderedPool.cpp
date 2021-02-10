@@ -6,36 +6,39 @@ BOOST_AUTO_TEST_SUITE (UnorderedPool)
 
 #define DEFAULT_PAGE_CAPACITY 32u
 
+void NonTrivialDataConstructor (void *chunk) noexcept
+{
+    new (chunk) NonTrivialData ();
+}
+
+void NonTrivialDataDestructor (void *chunk) noexcept
+{
+    static_cast <NonTrivialData *> (chunk)->~NonTrivialData ();
+}
+
+static bool nonTrivialDataDestructorCalled = false;
+
+void CustomNonTrivialDataDestructor (void *chunk) noexcept
+{
+    nonTrivialDataDestructorCalled = true;
+    NonTrivialDataDestructor (chunk);
+}
+
 static Memory::UnorderedPool ConstructDefaultPool ()
 {
     return Memory::UnorderedPool (
         DEFAULT_PAGE_CAPACITY, sizeof (NonTrivialData),
-        [] (void *chunk)
-        {
-            new (chunk) NonTrivialData ();
-        },
-        [] (void *chunk)
-        {
-            static_cast <NonTrivialData *> (chunk)->~NonTrivialData ();
-        });
+        NonTrivialDataConstructor, NonTrivialDataDestructor);
 }
 
 BOOST_AUTO_TEST_CASE (AcquireAndFree)
 {
-    bool destructedFlag = false;
+    nonTrivialDataDestructorCalled = false;
     Memory::UnorderedPool pool {
         DEFAULT_PAGE_CAPACITY, sizeof (NonTrivialData),
-        [] (void *chunk)
-        {
-            new (chunk) NonTrivialData ();
-        },
-        [&destructedFlag] (void *chunk)
-        {
-            static_cast <NonTrivialData *> (chunk)->~NonTrivialData ();
-            destructedFlag = true;
-        }};
+        NonTrivialDataConstructor, CustomNonTrivialDataDestructor};
 
-    TestPoolAcquireFree (pool, NonTrivialData (), destructedFlag);
+    TestPoolAcquireFree (pool, NonTrivialData (), nonTrivialDataDestructorCalled);
 }
 
 BOOST_AUTO_TEST_CASE (AcquirePageCount)

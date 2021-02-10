@@ -66,16 +66,11 @@ public:
     void Free (ObjectType *object);
 
 private:
-    Memory::UnorderedPool pool_ {
-        MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType),
-        [] (void *chunk)
-        {
-            new (chunk) ObjectType ();
-        },
-        [] (void *chunk)
-        {
-            static_cast <ObjectType *> (chunk)->~ObjectType ();
-        }};
+    static void Constructor (void *chunk) noexcept;
+
+    static void Destructor (void *chunk) noexcept;
+
+    Memory::UnorderedPool pool_ {MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType), Constructor, Destructor};
 };
 
 template <typename ObjectType>
@@ -179,6 +174,18 @@ template <typename ObjectType>
 void UnorderedPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
     pool_.Free (object);
+}
+
+template <typename ObjectType>
+void UnorderedPoolAdapter <ObjectType>::Constructor (void *chunk) noexcept
+{
+    new (chunk) ObjectType ();
+}
+
+template <typename ObjectType>
+void UnorderedPoolAdapter <ObjectType>::Destructor (void *chunk) noexcept
+{
+    static_cast <ObjectType *> (chunk)->~ObjectType ();
 }
 
 template <typename ObjectType>
