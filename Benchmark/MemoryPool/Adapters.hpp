@@ -7,7 +7,7 @@
 #include <Memory/UnorderedPool.hpp>
 #include <Memory/TypedUnorderedPool.hpp>
 
-#define MEMORY_LIBRARY_PAGE_CAPACITY 256u
+#define MEMORY_LIBRARY_PAGE_CAPACITY 512u
 
 template <typename ObjectType>
 class NewDeleteAdapter
