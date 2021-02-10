@@ -28,7 +28,7 @@ private:
 };
 
 template <typename ObjectType>
-class BoostObjectPoolAdapter
+class OrderedBoostObjectPoolAdapter
 {
 public:
     using EntryType = ObjectType;
@@ -39,6 +39,20 @@ public:
 
 private:
     boost::object_pool <ObjectType> pool_;
+};
+
+template <typename ObjectType>
+class UnorderedBoostPoolAdapter
+{
+public:
+    using EntryType = ObjectType;
+
+    ObjectType *Acquire ();
+
+    void Free (ObjectType *object);
+
+private:
+    boost::pool <boost::default_user_allocator_malloc_free> pool_ {sizeof (ObjectType)};
 };
 
 template <typename ObjectType>
@@ -131,14 +145,27 @@ void NewDeleteAdapter <ObjectType>::Free (ObjectType *object)
 }
 
 template <typename ObjectType>
-ObjectType *BoostObjectPoolAdapter <ObjectType>::Acquire ()
+ObjectType *OrderedBoostObjectPoolAdapter <ObjectType>::Acquire ()
 {
     return pool_.construct ();
 }
 
 template <typename ObjectType>
-void BoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
+void OrderedBoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
+    pool_.free (object);
+}
+
+template <typename ObjectType>
+ObjectType *UnorderedBoostPoolAdapter <ObjectType>::Acquire ()
+{
+    return new (pool_.malloc ()) ObjectType ();
+}
+
+template <typename ObjectType>
+void UnorderedBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
+{
+    object->~ObjectType ();
     pool_.free (object);
 }
 
