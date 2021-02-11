@@ -44,11 +44,11 @@ BENCHMARK_TEMPLATE(Allocation, OrderedBoostObjectPoolAdapter <Component192b>);
 
 BENCHMARK_TEMPLATE(Allocation, OrderedBoostObjectPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent32b>);
+BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent192b>);
+BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent1032b>);
+BENCHMARK_TEMPLATE(Allocation, OrderedTrivialBoostPoolAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(Allocation, UnorderedBoostPoolAdapter <Component32b>);
 

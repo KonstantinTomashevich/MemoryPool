@@ -42,7 +42,7 @@ private:
 };
 
 template <typename ObjectType>
-class OrderedTrivialBoostObjectPoolAdapter
+class OrderedTrivialBoostPoolAdapter
 {
 public:
     using EntryType = ObjectType;
@@ -177,17 +177,17 @@ ObjectType *OrderedBoostObjectPoolAdapter <ObjectType>::Acquire ()
 template <typename ObjectType>
 void OrderedBoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
-    pool_.free (object);
+    pool_.destroy (object);
 }
 
 template <typename ObjectType>
-ObjectType *OrderedTrivialBoostObjectPoolAdapter <ObjectType>::Acquire ()
+ObjectType *OrderedTrivialBoostPoolAdapter <ObjectType>::Acquire ()
 {
-    return reinterpret_cast<ObjectType *> (pool_.ordered_malloc ());
+    return static_cast<ObjectType *> (pool_.ordered_malloc ());
 }
 
 template <typename ObjectType>
-void OrderedTrivialBoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
+void OrderedTrivialBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
     pool_.ordered_free (object);
 }
@@ -208,7 +208,7 @@ void UnorderedBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
 template <typename ObjectType>
 ObjectType *UnorderedTrivialBoostPoolAdapter <ObjectType>::Acquire ()
 {
-    return reinterpret_cast<ObjectType *> (pool_.malloc ());
+    return static_cast<ObjectType *> (pool_.malloc ());
 }
 
 template <typename ObjectType>
@@ -220,7 +220,7 @@ void UnorderedTrivialBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
 template <typename ObjectType>
 ObjectType *UnorderedPoolAdapter <ObjectType>::Acquire ()
 {
-    return reinterpret_cast <ObjectType *> (pool_.Acquire ());
+    return static_cast <ObjectType *> (pool_.Acquire ());
 }
 
 template <typename ObjectType>
@@ -256,7 +256,7 @@ void TypedUnorderedPoolAdapter <ObjectType>::Free (ObjectType *object)
 template <typename ObjectType>
 ObjectType *UnorderedTrivialPoolAdapter <ObjectType>::Acquire ()
 {
-    return reinterpret_cast <ObjectType *> (pool_.Acquire ());
+    return static_cast <ObjectType *> (pool_.Acquire ());
 }
 
 template <typename ObjectType>
