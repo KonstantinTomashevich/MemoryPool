@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 project (MemoryPool)
 
-option (RUNTIME_OUTPUT_DIRECTORY "Directory where all runtime outputs will be stored." "${CMAKE_BINARY_DIR}/Bin")
+set (RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Bin" CACHE PATH "Directory where all runtime outputs will be stored.")
 option (MEMORY_POOL_TESTS "Build MemoryPool library tests." OFF)
 option (MEMORY_POOL_BENCHMARK "Build MemoryPool library benchmark." OFF)
 

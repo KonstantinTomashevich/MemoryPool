@@ -7,7 +7,7 @@
 #include <Memory/UnorderedPool.hpp>
 #include <Memory/TypedUnorderedPool.hpp>
 
-#define MEMORY_LIBRARY_PAGE_CAPACITY 256u
+#define MEMORY_LIBRARY_PAGE_CAPACITY 512u
 
 template <typename ObjectType>
 class NewDeleteAdapter
@@ -28,7 +28,7 @@ private:
 };
 
 template <typename ObjectType>
-class BoostObjectPoolAdapter
+class OrderedBoostObjectPoolAdapter
 {
 public:
     using EntryType = ObjectType;
@@ -42,6 +42,49 @@ private:
 };
 
 template <typename ObjectType>
+class OrderedTrivialBoostObjectPoolAdapter
+{
+public:
+    using EntryType = ObjectType;
+
+    ObjectType *Acquire ();
+
+    void Free (ObjectType *object);
+
+private:
+    boost::pool <boost::default_user_allocator_malloc_free> pool_ {sizeof (ObjectType)};
+};
+
+template <typename ObjectType>
+class UnorderedBoostPoolAdapter
+{
+public:
+    using EntryType = ObjectType;
+
+    ObjectType *Acquire ();
+
+    void Free (ObjectType *object);
+
+private:
+    boost::pool <boost::default_user_allocator_malloc_free> pool_ {sizeof (ObjectType)};
+};
+
+template <typename ObjectType>
+class UnorderedTrivialBoostPoolAdapter
+{
+public:
+    using EntryType = ObjectType;
+
+    ObjectType *Acquire ();
+
+    void Free (ObjectType *object);
+
+private:
+    boost::pool <boost::default_user_allocator_malloc_free> pool_ {sizeof (ObjectType)};
+};
+
+
+template <typename ObjectType>
 class UnorderedPoolAdapter
 {
 public:
@@ -52,16 +95,11 @@ public:
     void Free (ObjectType *object);
 
 private:
-    Memory::UnorderedPool pool_ {
-        MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType),
-        [] (void *chunk)
-        {
-            new (chunk) ObjectType ();
-        },
-        [] (void *chunk)
-        {
-            static_cast <ObjectType *> (chunk)->~ObjectType ();
-        }};
+    static void Constructor (void *chunk) noexcept;
+
+    static void Destructor (void *chunk) noexcept;
+
+    Memory::UnorderedPool pool_ {MEMORY_LIBRARY_PAGE_CAPACITY, sizeof (ObjectType), Constructor, Destructor};
 };
 
 template <typename ObjectType>
@@ -131,13 +169,50 @@ void NewDeleteAdapter <ObjectType>::Free (ObjectType *object)
 }
 
 template <typename ObjectType>
-ObjectType *BoostObjectPoolAdapter <ObjectType>::Acquire ()
+ObjectType *OrderedBoostObjectPoolAdapter <ObjectType>::Acquire ()
 {
     return pool_.construct ();
 }
 
 template <typename ObjectType>
-void BoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
+void OrderedBoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
+{
+    pool_.free (object);
+}
+
+template <typename ObjectType>
+ObjectType *OrderedTrivialBoostObjectPoolAdapter <ObjectType>::Acquire ()
+{
+    return reinterpret_cast<ObjectType *> (pool_.ordered_malloc ());
+}
+
+template <typename ObjectType>
+void OrderedTrivialBoostObjectPoolAdapter <ObjectType>::Free (ObjectType *object)
+{
+    pool_.ordered_free (object);
+}
+
+template <typename ObjectType>
+ObjectType *UnorderedBoostPoolAdapter <ObjectType>::Acquire ()
+{
+    return new (pool_.malloc ()) ObjectType ();
+}
+
+template <typename ObjectType>
+void UnorderedBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
+{
+    object->~ObjectType ();
+    pool_.free (object);
+}
+
+template <typename ObjectType>
+ObjectType *UnorderedTrivialBoostPoolAdapter <ObjectType>::Acquire ()
+{
+    return reinterpret_cast<ObjectType *> (pool_.malloc ());
+}
+
+template <typename ObjectType>
+void UnorderedTrivialBoostPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
     pool_.free (object);
 }
@@ -152,6 +227,18 @@ template <typename ObjectType>
 void UnorderedPoolAdapter <ObjectType>::Free (ObjectType *object)
 {
     pool_.Free (object);
+}
+
+template <typename ObjectType>
+void UnorderedPoolAdapter <ObjectType>::Constructor (void *chunk) noexcept
+{
+    new (chunk) ObjectType ();
+}
+
+template <typename ObjectType>
+void UnorderedPoolAdapter <ObjectType>::Destructor (void *chunk) noexcept
+{
+    static_cast <ObjectType *> (chunk)->~ObjectType ();
 }
 
 template <typename ObjectType>

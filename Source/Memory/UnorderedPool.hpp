@@ -41,8 +41,8 @@ class UnorderedPool
 public:
     using ValueType = void;
 
-    using Constructor =  std::function <void (void *)>;
-    using Destructor =  std::function <void (void *)>;
+    using Constructor = void (*) (void *) noexcept;
+    using Destructor = void (*) (void *) noexcept;
 
     UnorderedPool (SizeType pageCapacity, SizeType chunkSize,
                    Constructor constructor, Destructor destructor) noexcept;
