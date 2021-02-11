@@ -60,11 +60,11 @@ BENCHMARK_TEMPLATE(Deallocation, OrderedBoostObjectPoolAdapter <Component192b>);
 
 BENCHMARK_TEMPLATE(Deallocation, OrderedBoostObjectPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(Deallocation, OrderedBoostObjectPoolAdapter <TrivialComponent32b>);
+BENCHMARK_TEMPLATE(Deallocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(Deallocation, OrderedBoostObjectPoolAdapter <TrivialComponent192b>);
+BENCHMARK_TEMPLATE(Deallocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(Deallocation, OrderedBoostObjectPoolAdapter <TrivialComponent1032b>);
+BENCHMARK_TEMPLATE(Deallocation, OrderedTrivialBoostObjectPoolAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <Component32b>);
 
@@ -72,11 +72,11 @@ BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <Component192b>);
 
 BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <Component1032b>);
 
-BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <TrivialComponent32b>);
+BENCHMARK_TEMPLATE(Deallocation, UnorderedTrivialBoostPoolAdapter <TrivialComponent32b>);
 
-BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <TrivialComponent192b>);
+BENCHMARK_TEMPLATE(Deallocation, UnorderedTrivialBoostPoolAdapter <TrivialComponent192b>);
 
-BENCHMARK_TEMPLATE(Deallocation, UnorderedBoostPoolAdapter <TrivialComponent1032b>);
+BENCHMARK_TEMPLATE(Deallocation, UnorderedTrivialBoostPoolAdapter <TrivialComponent1032b>);
 
 BENCHMARK_TEMPLATE(Deallocation, UnorderedPoolAdapter <Component32b>);
 
